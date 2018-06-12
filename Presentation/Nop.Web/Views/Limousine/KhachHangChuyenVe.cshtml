@@ -1,0 +1,54 @@
+﻿@model QuanLyChuyenModel
+@using Nop.Core.Infrastructure
+@using Nop.Core.Domain.NhaXes;
+@using Nop.Web.Models.NhaXes
+@using Nop.Services.NhaXes
+@Html.HiddenFor(m => m.DatVeIdChuyenVe);
+<table style="width:100%">
+    <tr>
+        <td>
+
+        </td>
+        <td align="center" width="20%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Chọn chuyến đi:
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.ChuyenDiIdChuyenVe, Model.ChuyenDiChuyenVes)
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<div id="tabSoDoXeChuyenVe" style="width:100%;"></div>
+<script>    
+    
+    $(document).ready(function () {
+        //load lai thong tin lich trinh thuoc hanh trinh dang chon
+        $('#@Html.FieldIdFor(model => model.ChuyenDiIdChuyenVe)').change(function () {
+            LoadThongTinGheChuyenVe();
+        });
+        LoadThongTinGheChuyenVe();
+    });
+    function LoadThongTinGheChuyenVe() {
+        var _chuyendiid = $('#@Html.FieldIdFor(m => m.ChuyenDiIdChuyenVe)').val();
+        $.ajax({
+            cache: false,
+            type: "GET",
+            dataType: "html",
+            contentType: 'application/html;charset=utf-8',
+            url: "@(Url.Action("_TabSoDoXe", "Limousine"))?ChuyenDiId=" + _chuyendiid + "&PhanLoai=@((int)ENPhanLoaiPhoiVe.CHUYEN_VE)",
+            success: function (data) {
+                $("#tabSoDoXeChuyenVe").html(data);
+
+            },
+        error: function (xhr, ajaxOptions, thrownError) {
+            $("#tabSoDoXeChuyenVe").html("Có lỗi trong quá trình tải sơ đồ xe");
+        }
+    });
+    }
+</script>

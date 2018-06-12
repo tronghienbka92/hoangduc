@@ -1,0 +1,86 @@
+﻿@model TKLuotKhachHangModel
+@using Nop.Web.Models.NhaXeBaoCao
+
+<table class="BangGiaVe">
+    <thead>
+        <tr>
+            <td>Tuyến</td>
+            <td> Điện thoại</td>
+            <td> Ngày đi</td>
+           
+            <td>Biển số xe</td>
+            <td> Giá vé</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var item in Model.doanhthus)
+        {
+            <tr>
+                <td>
+                    @item.hanhtrinh.MoTa
+                </td>
+                <td>
+                    @item.khachhang.DienThoai
+                </td>
+                <td>
+                    @item.NgayDi
+                </td>
+              
+@if (item.chuyendi.xevanchuyen != null)
+{
+    <td>
+
+        @item.chuyendi.xevanchuyen.BienSo
+    </td>
+}
+else
+{
+    <td>
+
+       
+    </td>
+}
+                
+                <td>
+                    @item.GiaTien.ToString("###,###")
+                </td>
+            </tr>
+        }
+        <tr>
+            <td class="Tong" colspan="2">
+                Tổng:
+            </td>
+            <td class="Tong" colspan="2">
+               SL:  @Model.TongSL
+            </td>
+            <td class="Tong" colspan="2">
+               Thành tiền: @Model.TongTien.ToString("###,###")
+            </td>
+        </tr>
+    </tbody>
+    
+</table>
+
+<style>
+     .BangGiaVe {
+                border-collapse: collapse;                
+               width:100%;
+            }
+       .BangGiaVe, .BangGiaVe tr, .BangGiaVe tr td {
+            border: 1px solid #928d8d;
+        }
+       .BangGiaVe tr
+       {
+           height:30px;
+       }
+       .BangGiaVe thead tr td
+       {
+           font-weight: bold;
+    font-size: 15px;
+       }
+       .Tong
+       {
+           font-size:15px;
+           font-weight: bold;
+       }
+</style>

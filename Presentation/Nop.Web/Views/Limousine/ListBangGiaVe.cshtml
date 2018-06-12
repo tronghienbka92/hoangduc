@@ -1,0 +1,87 @@
+﻿@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+
+}
+
+<div id="grid-menhgia"></div>
+
+<script>
+                var indexrow1 = 0;
+                $(document).ready(function () {
+
+                    $("#grid-menhgia").kendoGrid({
+                        dataSource: {
+                            transport: {
+                                read: {
+                                    url: "/Limousine/GridBangGiaVe",
+                                    dataType: "jsonp"
+                                },
+                                update: {
+                                    url: "/Limousine/EditBangGiaVe",
+                                    dataType: "jsonp"
+                                },
+                                destroy: {
+                                    url: "/Limousine/DeleteBangGiaVe",
+                                    dataType: "jsonp"
+                                },
+                                create: {
+                                    url: "/Limousine/CreateBangGiaVe",
+                                    dataType: "jsonp"
+                                },
+                                parameterMap: function (options, operation) {
+                                    indexrow1 = 0;
+                                    if (operation !== "read" && options.models) {
+                                        return { models: kendo.stringify(options.models) };
+                                    }
+                                }
+                            },
+                            batch: true,
+                            schema: {
+                                model: {
+                                    id: "Id",
+                                    fields: {
+                                        Id: { type: "number", editable: false, nullable: false },
+                                        ThongTin: { type: "string", validation: { required: true }, editable: true },
+                                        GiaVe: { type: "number", validation: { required: true }, editable: true }
+                                    }
+                                }
+                            },
+                            requestEnd: function (e) {
+                                if (e.type == "create" || e.type == "update" || e.type == "destroy") {
+                                    this.read();
+                                }
+                            },
+                        },
+                        pageable: false,
+                        height: 300,
+                        toolbar: [{ name: "create", text: "Thêm mới" }],
+                        columns: [
+
+                           {
+                               title: "STT",
+                               template: "#= ++indexrow1 #",
+                               width: 50,
+                               attributes: { style: "text-align:center" },
+                           },
+                            {
+                                field: "ThongTin", title: "Mô tả",
+                            },
+                            {
+                                field: "GiaVe", title: "Mệnh giá",
+                                type: "number",
+                                format: "{0:###,###,##0 đ}"
+                            },
+
+                            {
+                                command: [
+                                    { name: "edit", text: "Sửa" },
+                                    { name: "destroy", text: "Xóa" },
+                                ], title: "&nbsp;"
+                            }],
+                        editable: {
+                            confirmation: "Bạn có chắc chắn xóa thông tin giá vé này không ?",
+                            mode: "inline"
+                        },
+                    });
+                });
+</script>

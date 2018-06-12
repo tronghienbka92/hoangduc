@@ -1,0 +1,300 @@
+﻿@model ChiPhiXeListModel
+@using Nop.Services.NhaXes
+@using Nop.Web.Models.ChiPhiXeVanChuyen;
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+
+}
+<div class="section-header">
+    <div class="title">
+        <img src="@Url.Content("/Content/chonve/nxmenu/baocaodoanhthu.png")" alt="" />
+        Chi phí theo xe
+    </div>
+    <div class="options">
+        <input type="button" class="k-button" value="Tạo mới" id="btnTaoMoi" />
+    </div>
+</div>
+
+<table style="width:100%">
+    <tr>
+        <td align="center" width="15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Từ ngày:
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.TuNgay)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="15%" id="tabThang">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Đến ngày:
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.DenNgay)
+
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="30%" id="tabNam">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Biển số:
+                    </td>
+                    <td class="adminData">
+                        <input id="cbbBienSoList" style="width:100%" />
+                        @Html.HiddenFor(m => m.XeVanChuyenListId)
+                        <script>
+                            //tao thong tin xe
+                            var xevanchuyendatasoures = [
+                                   @for (int i = 0; i < Model.AllXeInfo.Count; i++)
+                            {
+                                var _item = Model.AllXeInfo[i];
+                                <text>
+                            {
+                                Id: @(_item.Id),
+                                BienSo: "@(Html.Raw(HttpUtility.JavaScriptStringEncode(_item.BienSo)))"
+                            }
+                            </text>
+                                if (i != Model.AllXeInfo.Count - 1)
+                                {
+                                    <text>,</text>
+                                }
+                            }
+                            ];
+                            function ThongTinBienSoList() {
+                                $("#cbbBienSoList").kendoComboBox({
+                                    placeholder: "Chọn biển số",
+                                    dataTextField: "BienSo",
+                                    dataValueField: "Id",
+                                    filter: "contains",
+                                    autoBind: false,
+                                    minLength: 1,
+                                    dataSource: {
+                                        data: xevanchuyendatasoures
+                                    },
+                                    change: function (e) {
+                                        var DataItem = this.dataItem();
+                                        $('#@Html.FieldIdFor(m => m.XeVanChuyenListId)').val(DataItem.Id);
+                                        $("#btnSearch").click();
+                                    }
+                                });
+                            }
+                            $(document).ready(function(){
+                                ThongTinBienSoList();
+                            });
+                        </script>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="15%" id="tabNam">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Hạng mục:
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(m => m.HangMucChiPhiListId, Model.hangmucs)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="text-align:left">
+            <input type="button" id="btnSearch" class="k-button" value="@T(" admin.common.search")" />
+        </td>
+    </tr>
+</table>
+<table class="adminContent">
+    <tr>
+        <td>
+            <div id="danhsach-grid"></div>
+
+            <script>
+    var indexrow = 0;
+    $(document).ready(function () {
+        $("#danhsach-grid").kendoGrid({
+            dataSource: {
+                type: "json",
+                transport: {
+                    read: {
+                        url: "@Html.Raw(Url.Action("ListChiPhi", "ChiPhiXeVanChuyen"))",
+                        type: "POST",
+                        dataType: "json",
+                        data: additionalData
+                    }
+                },
+                schema: {
+                    data: "Data",
+                    total: "Total",
+                    errors: "Errors"
+                },
+                error: function (e) {
+                    display_kendoui_grid_error(e);
+                    // Cancel the changes
+                    this.cancelChanges();
+                },
+                serverPaging: false,
+                serverFiltering: false,
+                serverSorting: false
+            },
+            scrollable: false,
+            columns: [{
+                title: "STT",
+                template: "#= ++indexrow #",
+                width: 50,
+                attributes: { style: "text-align:center" },
+                headerAttributes: { style: "text-align: center;" },
+            },{
+                field: "Ma",
+                title: "Mã",
+                width: 70,
+                attributes: { style: "text-align:center" },
+                headerAttributes: { style: "text-align: center;" },
+            }, {
+                field: "BienSo",
+                title: "Biển số",
+                width: 90,
+                attributes: { style: "text-align:center" },
+                headerAttributes: { style: "text-align: center;" },
+            }, {
+                field: "TenLaiXe",
+                title: "Lái xe",
+                width: 120,
+                attributes: { style: "text-align:left" },
+                headerAttributes: { style: "text-align: center;" },
+            }, {
+                field: "TenHangMuc",
+                title: "Hạng mục",
+                attributes: { style: "text-align:left" },
+                headerAttributes: { style: "text-align: center;" },
+                width: 120,
+            }, {
+                field: "TenCongViec",
+                title: "Tên công việc",
+                attributes: { style: "text-align:left" },
+                headerAttributes: { style: "text-align: center;" },
+            }, {
+                field: "ChiPhi",
+                title: "Chi phí",
+                type: "number",
+                format:"{0:###,###,##0 đ}",
+                attributes: { style: "text-align:right" },
+                headerAttributes: { style: "text-align: center;" },
+            }, {
+                field: "ThoiGian",
+                title: "Thời gian",
+                attributes: { style: "text-align:left" },
+                headerAttributes: { style: "text-align: center;" },
+            }, {
+                field: "NgayGiaoDich",
+                title: "Ngày",
+                type: "date",
+                attributes: { style: "text-align:center" },
+                format: "{0:dd/MM/yyyy}",
+                headerAttributes: { style: "text-align: center;" },
+            }, {
+                field: "Id",
+                title: "@T("Admin.Common.Edit")",
+                width: 70,
+                template: '<a href="javascript:SuaChiPhiXe(#=Id#)">@T("Admin.Common.Edit")</a> &nbsp; <a href="javascript:XoaChiPhiXe(#=Id#)">Xóa</a>'
+                        }
+
+                        ]
+                    });
+                });
+            </script>
+
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    $('#btnTaoMoi').click(function () {
+                        //search
+                        SuaChiPhiXe(0);
+                        return false;
+                    });
+                    //search button
+                    $('#btnSearch').click(function () {
+                        //search
+                        var grid = $('#danhsach-grid').data('kendoGrid');
+                        indexrow = 0;
+                        grid.dataSource.read();
+                        return false;
+                    });
+                    $("#@Html.FieldIdFor(m=>m.XeVanChuyenListId)").change(function (event) {
+                        $("#btnSearch").click();
+                    });
+                    $("#@Html.FieldIdFor(m=>m.HangMucChiPhiListId)").change(function (event) {
+                        $("#btnSearch").click();
+                    });
+
+                });
+
+                function additionalData() {
+
+                    return {
+                        XeVanChuyenListId: $('#@Html.FieldIdFor(m=>m.XeVanChuyenListId)').val(),
+                        HangMucChiPhiListId: $('#@Html.FieldIdFor(m=>m.HangMucChiPhiListId)').val(),
+                        TuNgay: $('#@Html.FieldIdFor(m => m.TuNgay)').val(),
+                        DenNgay: $('#@Html.FieldIdFor(m => m.DenNgay)').val(),
+                    };
+                }
+                function XoaChiPhiXe(Id) {
+                    if(confirm("Bạn có chắc chắn xóa chi phí này không ?"))
+                    {
+                        $.ajax({
+                            cache: false,
+                            type: "POST",
+                            data: {Id:Id},
+                            url: "@(Url.Action("XoaChiPhiXe", "ChiPhiXeVanChuyen"))",
+                            success: function (data) {
+                                $("#btnSearch").click();
+                            },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            return alert('Error');
+                        }
+                    });
+                    }
+                }
+                function SuaChiPhiXe(Id) {
+                    var formkhachhang = $("#dtvChiPhiXe");
+                    var _title="Chỉ sửa thông tin chi phí";
+                    var hangmucid=0;
+                    var xevanchuyenid=0;
+                    if(Id==0)
+                    {
+                        hangmucid= $('#@Html.FieldIdFor(m=>m.HangMucChiPhiListId)').val();
+                        xevanchuyenid= $('#@Html.FieldIdFor(m => m.XeVanChuyenListId)').val();
+                        _title="Thêm mới thông tin chi phí";
+                    }
+
+                    formkhachhang.html('');
+
+                    formkhachhang.kendoWindow({
+                        width: "600px",
+                        height:"400px",
+                        title: _title,
+                        content: "@(Url.Action("_ChiPhiXeChinhSua", "ChiPhiXeVanChuyen"))?Id=" + Id+"&HangMucId="+hangmucid+"&XeId="+xevanchuyenid,
+                        modal: true,
+                        actions: [
+                            "Close"
+                        ],
+                    }).data("kendoWindow").center();
+                    formkhachhang.data('kendoWindow').open();
+                }
+                function CloseSuaChiPhi() {
+                    $("#dtvChiPhiXe").data('kendoWindow').close();
+                    $("#btnSearch").click();
+                }
+</script>
+        </td>
+    </tr>
+</table>
+
+<div id="dtvChiPhiXe" style="display:none"></div>

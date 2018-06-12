@@ -1,0 +1,208 @@
+﻿@model ListHopdongChuyenModels
+@using Nop.Web.Models.NhaXes
+@using Nop.Core.Infrastructure
+@Html.ValidationSummary(false)
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+    var defaultGridPageSize = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().DefaultGridPageSize;
+    var gridPageSizes = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().GridPageSizes;
+
+    //page title
+    ViewBag.Title = "Danh sách hợp đồng trọn gói";
+}
+<div class="section-header">
+    <div class="title">
+        <img src="@Url.Content("~/Content/chonve/nxmenu/hanhtrinhlichtrinh.png")" alt="" />
+        Danh sách hợp đồng chuyến
+    </div>
+    <div class="options">
+        <a class="k-button" title="Thêm mới hợp đồng trọn gói" href="@Url.Action("HopDongChuyenTao")">@T("Admin.Common.AddNew")</a>
+
+
+    </div>
+</div>
+<table width="100%">
+    <tr>
+        <td>
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Số hợp đồng:
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.SoHopDong)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Biển số xe:
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.BienSoXe)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="text-align:left">
+            <input type="button" id="btnSearch" class="k-button" value="@T("Admin.Common.Search")" />
+        </td>
+    </tr>
+</table>
+<table class="adminContent">
+    <tr>
+        <td>
+            <div id="danhsach-grid"></div>
+
+            <script>
+                var indexrow = 0;
+                $(document).ready(function () {
+                    $('#btnSearch').click(function () {
+                        var grid = $('#danhsach-grid').data('kendoGrid');
+                        grid.dataSource.page(1); //new search. Set page size to 1
+                        return false;
+                    });
+                    $("#@Html.FieldIdFor(model => model.BienSoXe)").keydown(function (event) {
+                        if (event.keyCode == 3) {
+                            $("#btnSearch").click();
+                            return false;
+                        }
+                    });
+                    $("#@Html.FieldIdFor(model => model.SoHopDong)").keydown(function (event) {
+                        if (event.keyCode == 13) {
+                            $("#btnSearch").click();
+                            return false;
+                        }
+                    });
+
+                    $("#danhsach-grid").kendoGrid({
+                        dataSource: {
+                            type: "json",
+                            transport: {
+                                read: {
+                                    url: "@Html.Raw(Url.Action("ListHopDongChuyen", "HopDongChuyen"))",
+                                    type: "POST",
+                                    dataType: "json",
+                                    data: additionalData
+                                }
+                            },
+                            schema: {
+                                data: "Data",
+                                total: "Total",
+                                errors: "Errors"
+                            },
+                            error: function(e) {
+                                display_kendoui_grid_error(e);
+                                // Cancel the changes
+                                this.cancelChanges();
+                            },
+                            pageSize: @(defaultGridPageSize),
+                            serverPaging: true,
+                            serverFiltering: true,
+                            serverSorting: true
+                        },
+                        pageable: {
+                            refresh: true,
+                            pageSizes: [@(gridPageSizes)],
+                            messages: {
+                                display: "@T("Nop.Common.KendoGrid.display")", //{0} is the index of the first record on the page, {1} - index of the last record on the page, {2} is the total amount of records
+                                empty: "@T("Nop.Common.KendoGrid.Empty")",
+                                page: "@T("Nop.Common.KendoGrid.Page")",
+                                of: "@T("Nop.Common.KendoGrid.Of")", //{0} is total amount of pages
+                                itemsPerPage: "@T("Nop.Common.KendoGrid.itemsPerPage")",
+                                first: "@T("Nop.Common.KendoGrid.first")",
+                                previous: "@T("Nop.Common.KendoGrid.previous")",
+                                next: "@T("Nop.Common.KendoGrid.next")",
+                                last: "@T("Nop.Common.KendoGrid.last")",
+                                refresh: "@T("Nop.Common.KendoGrid.refresh")"
+                            }
+                        },
+                        scrollable: false,
+                        columns: [{
+                            title: "STT",
+                            template: "#= ++indexrow #",
+                            width: 50,
+                            attributes: { style: "text-align:center" },
+                            headerAttributes: { style: "text-align: center;" },
+                        },{
+                            field: "SoHopDong",
+                            title: "Số hợp đồng",
+                            template:'#="<a href=\'javascript:ChiTietHopDong("+Id+")\'>"+SoHopDong+"</a>"#',
+                            attributes: { style: "text-align:center" },
+                            headerAttributes: { style: "text-align: center;" },
+                        },{
+                            field: "ThoiGianDonKhach",
+                            title: "Ngày đi",
+                            type: "date",
+                            format: "{0:dd/MM/yyyy}",
+                            attributes: { style: "text-align:center" },
+                            headerAttributes: { style: "text-align: center;" },
+                        },{
+                            field: "NgayTao",
+                            title: "Ngày tạo",
+                            type: "date",
+                            format: "{0:dd/MM/yyyy}",
+                            attributes: { style: "text-align:center" },
+                            headerAttributes: { style: "text-align: center;" },
+                        },{
+                            field: "NguoiTao",
+                            title: "Nhân viên tạo",
+                            attributes: { style: "text-align:center" },
+                            headerAttributes: { style: "text-align: center;" },
+                        },  {
+                            field: "BienSoXe",
+                            title: "Biển số xe",
+                            attributes: { style: "text-align:center" },
+                            headerAttributes: { style: "text-align: center;" },
+
+                        },  {
+                            field: "TenLaiXe",
+                            title: "Tên lái xe",
+                            attributes: { style: "text-align:center" },
+                            headerAttributes: { style: "text-align: center;" },
+
+                        },  {
+                            field: "LoTrinh",
+                            title: "Hành trình",
+                            attributes: { style: "text-align:center" },
+                            headerAttributes: { style: "text-align: center;" },
+                        },  {
+                            field: "KmXuat",
+                            title: "KM Xuất",
+                            attributes: { style: "text-align:center" },
+                            headerAttributes: { style: "text-align: center;" },
+                        }, {
+                            field: "GiaTri",
+                            title: "Giá trị HD"
+                        },
+                        {
+                            field: "Id",
+                            title: "In hợp đồng",
+                            width: 100,
+                            template: '<a href="/NhaXeCauHinh/InPhieu?MaId=700&Id=#=Id#">In hợp đồng</a>'
+                        },
+                        {
+                            field: "Id",
+                            title: "@T("Admin.Common.Edit")",
+                            width: 100,
+                            template: '<a href="HopDongChuyenSua/#=Id#">@T("Admin.Common.Edit")</a>'
+                        }]
+                    });
+                });
+                function additionalData() {
+                    return {
+                        BienSoXe: $('#@Html.FieldIdFor(model => model.BienSoXe)').val(),
+                        SoHopDong: $('#@Html.FieldIdFor(model => model.SoHopDong)').val()
+
+                    };
+                }
+            </script>
+
+        </td>
+    </tr>
+</table>
+
+@Html.Partial("_HopDongChuyeWindow")

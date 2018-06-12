@@ -1,0 +1,136 @@
+﻿@model KhachHangChuyenModel
+@using Nop.Web.Models.NhaXes
+@using Nop.Core.Infrastructure
+@Html.ValidationSummary(false)
+@{
+    Layout = null;
+    var defaultGridPageSize = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().DefaultGridPageSize;
+    var gridPageSizes = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().GridPageSizes;
+
+}
+<style>
+    input[type="radio"] {
+
+        -webkit-appearance: checkbox;
+        -moz-appearance: checkbox;
+        -ms-appearance: checkbox; /* not currently supported */
+        -o-appearance: checkbox; /* not currently supported */
+    }
+    .btnHoanTat {
+        float: right;
+        background: #3498db;
+        background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
+        background-image: -moz-linear-gradient(top, #3498db, #2980b9);
+        background-image: -ms-linear-gradient(top, #3498db, #2980b9);
+        background-image: -o-linear-gradient(top, #3498db, #2980b9);
+        background-image: linear-gradient(to bottom, #3498db, #2980b9);
+        -webkit-border-radius: 28;
+        -moz-border-radius: 28;
+        border-radius: 28px;
+        font-family: Arial;
+        color: #ffffff;
+        font-size: 14px;
+        padding: 6px 12px 6px 13px;
+        text-decoration: none;
+    }
+
+        .btnHoanTat:hover {
+            background: #3cb0fd;
+            background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
+            background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
+            background-image: -ms-linear-gradient(top, #3cb0fd, #3498db);
+            background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
+            background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+            text-decoration: none;
+        }
+</style>
+@Html.HiddenFor(model => model.HopDongChuyenId)
+<h3 style="text-align: center; margin: 13px;">Thông tin khách hàng</h3>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#btnThemkh').click(function () {
+            if ($('#@Html.FieldIdFor(model => model.TenKhachHang)').val() == "")
+            {
+                return alert("Bạn chưa nhập tên kh");
+            }
+            var form = $('#FormKhachHangInfo');
+            if (form.valid()) { //if you use validation
+                $.ajax({
+                    url: form.attr('action'),
+                    type: form.attr('method'),
+                    data: $("#FormKhachHangInfo").serialize(),
+                    success: function (data) {
+                        if(data=="ok")
+                        {
+                            SetCloseWindowHDChuyen();
+                        }
+                        else {
+                            
+                        }
+                    }
+                });
+            }
+        });
+
+    });
+    
+</script>
+@using (Html.BeginForm(Html.BeginForm("KhachHangChuyenInfo", "HopDongChuyen", FormMethod.Post, new { id = "FormKhachHangInfo" })))
+{
+    @Html.HiddenFor(model=>model.HopDongChuyenId)
+ 
+            <table width="100%" style="margin-left: 55px;">
+                <tr>
+                    <td class="adminTitle">
+                        @Html.NopLabelFor(model => model.TenKhachHang):
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.TenKhachHang)
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="adminTitle">
+                        @Html.NopLabelFor(model => model.SoDienThoai):
+                    </td>
+                    <td class="adminData">
+                       @Html.EditorFor(model => model.SoDienThoai)
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="adminTitle">
+                        @Html.NopLabelFor(model => model.NamSinh):
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.NamSinh)
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="adminTitle">
+                        @Html.NopLabelFor(model => model.isDaiDien):
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.isDaiDien)
+
+                    </td>
+                </tr>              
+                <tr>
+                    <td class="adminTitle">
+                        @Html.NopLabelFor(model => model.GhiChu):
+                    </td>
+                    <td class="adminData">
+                        @Html.TextAreaFor(model => model.GhiChu)
+
+                    </td>
+                </tr>
+            </table>
+      
+    <input type="button" id="btnThemkh" value="Hoàn tất" class="btnHoanTat"/>
+}
+
+
+
+

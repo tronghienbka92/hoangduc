@@ -1,0 +1,56 @@
+﻿@model ListDoanhthuNhanVienXeModel
+@using Nop.Web.Models.NhaXeBaoCao
+
+<table class="BangGiaVe">
+    <thead>
+        <tr>
+            <td> Biển số xe</td>
+            <td> Lái xe</td>
+            <td> Tổng lượt</td>
+            <td>Số khách</td>
+            <td> Thành tiền</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var item in Model.doanhthus)
+        {
+            <tr>
+                <td>
+                    @item.BienSoXe
+                </td>
+                <td>
+                    @item.TenLaiXe
+                </td>
+                <td>
+                    @item.TongLuot
+                </td>
+                <td>
+                    @item.SoKhach
+                </td>
+                <td>
+                    @item.ThanhTien.ToString("###,###")
+                </td>
+            </tr>
+        }
+    </tbody>
+    
+</table>
+
+<style>
+     .BangGiaVe {
+                border-collapse: collapse;                
+               width:100%;
+            }
+       .BangGiaVe, .BangGiaVe tr, .BangGiaVe tr td {
+            border: 1px solid #928d8d;
+        }
+       .BangGiaVe tr
+       {
+           height:30px;
+       }
+       .BangGiaVe thead tr td
+       {
+           font-weight: bold;
+    font-size: 16px;
+       }
+</style>

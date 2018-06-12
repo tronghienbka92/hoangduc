@@ -1,0 +1,68 @@
+﻿@model VeXeQuyenListModel
+@using Nop.Web.Models.NhaXeBanVe
+<table style="width:100%" cellpadding="2" cellspacing="2">
+    <tr>
+        <td>
+            @Html.DropDownListFor(model => model.QuyenId, Model.vexequyens, new { @size=10,@style="width:100%"})
+        </td>
+        <td style="width:55px;text-align:center">
+            <a href="javascript:void(0)" id="btnUp"><img src="~/Content/chonve/nhaxe/up_button_basic_blue.png" /></a><br />
+            <a href="javascript:void(0)" id="btnDown"><img src="~/Content/chonve/nhaxe/down_button_basic_blue.png" /></a>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2" style="text-align:left">
+            @if (Model.vexequyens.Count > 1)
+            {
+                <input type="button" class="k-button" value="Lưu" id="btnLuuThongTin" style="width:120px" />
+            }
+            
+        </td>
+    </tr>
+</table>
+<script>
+    $(document).ready(function () {
+        $('#btnUp').bind('click', function () {
+            $('#@Html.FieldIdFor(m=>m.QuyenId) option:selected').each(function () {
+                var newPos = $('#@Html.FieldIdFor(m=>m.QuyenId) option').index(this) - 1;
+                if (newPos > -1) {
+                    $('#@Html.FieldIdFor(m=>m.QuyenId) option').eq(newPos).before("<option value='" + $(this).val() + "' selected='selected'>" + $(this).text() + "</option>");
+                    $(this).remove();
+                }
+            });
+        });
+        $('#btnDown').bind('click', function () {
+            var countOptions = $('#@Html.FieldIdFor(m=>m.QuyenId) option').size();
+            $('#@Html.FieldIdFor(m=>m.QuyenId) option:selected').each(function () {
+                var newPos = $('#@Html.FieldIdFor(m=>m.QuyenId) option').index(this) + 1;
+                if (newPos < countOptions) {
+                    $('#@Html.FieldIdFor(m=>m.QuyenId) option').eq(newPos).after("<option value='" + $(this).val() + "' selected='selected'>" + $(this).text() + "</option>");
+                    $(this).remove();
+                }
+            });
+        });
+        $('#btnLuuThongTin').click(function () {
+            var _ids = "";
+            $('#@Html.FieldIdFor(m=>m.QuyenId) option').each(function () {                
+                if (_ids == "")
+                    _ids = $(this).val();
+                else
+                    _ids = _ids + "," + $(this).val();
+            });
+            $.ajax({
+                url: "/BanVe/DieuChinhThuTuQuyenVe",
+                type: "POST",
+                data: { quyenids: _ids },
+                success: function (data) {
+                    if (data == "OK") {
+                        SetCloseWindowDieuChinh();                      
+
+                    }                    
+                    else {
+                        alert("Có lỗi, trong quá trình cập nhật dữ liệu");
+                    }
+                }
+            });
+        });
+    });
+</script>

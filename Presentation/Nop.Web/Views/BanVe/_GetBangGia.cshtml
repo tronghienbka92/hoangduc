@@ -1,0 +1,428 @@
+﻿@model BangVeInfoModel
+@using Nop.Web.Models.NhaXeBanVe
+<style>
+    #BangGiaVeHead, #BangGiaVe1, #BangGiaVe2, #BangGiaVe {
+        width: 100%;
+    }
+
+
+
+        #BangGiaVe1 tr, #BangGiaVe2 tr, #BangGiaVe tr {
+            height: 45px;
+        }
+
+        #BangGiaVeHead tr {
+            height: 20px;
+            text-align: center;
+            vertical-align: bottom;
+        }
+
+        #BangGiaVe1 tr td {
+            margin-top: 5px;
+            text-align: center;
+            vertical-align: bottom;
+            border: 1px solid #e5e2e2;
+        }
+
+
+    #BangGiaVe, #BangGiaVe2 {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #BangGiaVe, #BangGiaVe tr, #BangGiaVe tr td, #BangGiaVe2, #BangGiaVe2 tr, #BangGiaVe2 tr td {
+            border: 1px solid #928d8d;
+        }
+
+            #BangGiaVe2 tr td {
+                text-align: center;
+                padding: 10px;
+            }
+
+
+            #BangGiaVe tr td {
+                text-align: center;
+                vertical-align: top;
+                padding: 10px;
+            }
+
+    .TdBanVe {
+        text-align: center;
+        padding: 5px 7px 5px 7px;
+        vertical-align: top;
+    }
+
+    .VeXeGiaItem {
+        height: 50px;
+        padding-top: 26px;
+    }
+
+    a:hover {
+        text-decoration: none;
+    }
+
+    .HeaderBangGia {
+        font-weight: bolder;
+    }
+
+    .BtnXoaVe {
+        -webkit-border-radius: 5;
+        -moz-border-radius: 5;
+        border-radius: 5px;
+        font-family: Arial;
+        color: #ffffff;
+        font-size: 13px;
+        background: #24a852;
+        padding: 2px;
+        text-decoration: none;
+    }
+
+
+    .btnBanVe40, .btnBanVe50, .btnBanVe60, .btnBanVe65, .btnBanVe70, .btnBanVe75, .btnBanVe80, .btnBanVe100 {
+        -webkit-border-radius: 10;
+        -moz-border-radius: 10;
+        border-radius: 10px;
+        font-family: Arial;
+        font-size: 12px;
+        padding: 10px 20px 10px 20px;
+        text-decoration: none;
+    }
+
+    .btnBanVe40 {
+        color: #ffffff;
+        background: #61380B;
+    }
+
+    .btnBanVe50 {
+        color: #ffffff;
+        background: #5F4C0B;
+    }
+
+    .btnBanVe60 {
+        color: #ffffff;
+        background: #886A08;
+    }
+
+    .btnBanVe65 {
+        color: #ffffff;
+        background: #5E610B;
+    }
+
+    .btnBanVe70 {
+        color: #ffffff;
+        background: #4B8A08;
+    }
+
+    .btnBanVe75 {
+        color: #ffffff;
+        background: #298A08;
+    }
+
+    .btnBanVe80 {
+        color: #ffffff;
+        background: #0B615E;
+    }
+
+    .btnBanVe100 {
+        color: #ffffff;
+        background: #0B3B39;
+    }
+
+    .GiaVe {
+        font-size: 18px;
+    }
+
+    .hetve {
+        color: red;
+    }
+
+    ul.listseri {
+        list-style-type: circle;
+    }
+
+        ul.listseri li {
+            text-align: left;
+            font-size: 14px;
+        }
+
+    .Gia {
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    #imgdelete {
+        opacity: 0.6;
+        filter: alpha(opacity=60); /* For IE8 and earlier */
+    }
+
+        #imgdelete:hover {
+            cursor: pointer;
+            opacity: 1.0;
+            filter: alpha(opacity=100); /* For IE8 and earlier */
+        }
+</style>
+<div style="margin-top:15px">
+    <table width="100%" style="margin-bottom:10px;">
+        <tr>
+            <td style="text-align:right;color:#a40c0c;padding-right:20px">
+                
+            </td>
+            <td style="text-align:right;width:300px;border-bottom:2px solid #5F4C0B">
+
+                Tổng vé đã bán:
+                <span class="Gia">
+                    @Model.TongVeDaBan Vé.
+                </span>
+
+                Tổng tiền:
+                <span class="Gia">
+                    @Model.TongTien
+                </span>
+
+            </td>
+        </tr>
+    </table>
+    <table id="BangGiaVeHead">
+
+        @gheInfo(0)
+
+    </table>
+    <table id="BangGiaVeHead">
+
+        @gheInfo(4)
+
+    </table>
+    <table id="BangGiaVe1">
+
+        @gheInfo(1)
+
+    </table>
+    <table id="BangGiaVe2">
+
+        @gheInfo(2)
+
+    </table>
+    <table id="BangGiaVe">
+
+        @gheInfo(3)
+
+    </table>
+</div>
+@helper gheInfo(int i)
+{
+    var withcol = 100 / (Model.SoDiemDon + 1);
+    <tr>
+        @for (int j = 0; j < Model.SoDiemDon + 1; j++)
+        {
+            var _actionlink = "javascript:void(0);";
+            var _SoLuongVeInput = "";
+            if (j == 0)
+            {
+
+                switch (i)
+                {
+                    case 0:
+                    case 4:
+                        {
+                            <td style="width:@withcol%;"></td>
+                            break;
+                        }
+                    case 1:
+                        {
+                            <td class="TdBanVe" style="width:@withcol%;vertical-align: middle;">
+
+                                <span class="HeaderBangGia">
+                                    @Model.TenDauTuyen
+                                </span>
+
+                            </td>
+                            break;
+                        }
+                    case 2:
+                        {
+                            <td style="width:@withcol%;">
+                                Số vé đã bán
+                            </td>
+                            break;
+
+                        }
+                    case 3:
+                        {
+                            <td style="width:@withcol%;">
+                                Vé đã bán
+                            </td>
+                            break;
+                        }
+                }
+            }
+            else
+            {
+                switch (i)
+                {
+                    case 0:
+                        {
+
+                            <td style="width:@withcol%;">
+                                <span class="HeaderBangGia">
+                                    @Model.HanhTrinhGiaVes[j - 1].TenDiemDen
+                                </span>
+                            </td>
+                            break;
+                        }
+                    case 4:
+                        {
+
+                            <td style="width:@withcol%;">
+                                <span class="HeaderBangGia">
+                                    Quyển: <span style="font-size:x-small">
+    @Model.HanhTrinhGiaVes[j - 1].QuyenDangBan
+                                    @if (!Model.HanhTrinhGiaVes[j - 1].IsHetVe)
+                                    {
+                                        <text>
+                                            [<a style="font-size:x-small" href="javascript:DieuChinh(@Model.HanhTrinhGiaVes[j - 1].Id)" title="Điều chỉnh thứ tự bán"><img src="~/Content/chonve/nhaxe/edit_simple.png" /></a>]                                        
+                                        </text>
+                                    }
+                                        
+                                </span>
+                            </td>
+                            break;
+                        }
+                    case 1:
+                        {
+                            var _class = "btnBanVe40";
+                            switch (Model.HanhTrinhGiaVes[j - 1].GiaVe.ToString())
+                            {
+                                case "40000":
+                                    {
+                                        _class = "btnBanVe40";
+                                        break;
+                                    }
+
+                                case "50000":
+                                    {
+                                        _class = "btnBanVe50";
+                                        break;
+                                    }
+
+                                case "60000":
+                                    {
+                                        _class = "btnBanVe60";
+                                        break;
+                                    }
+                                case "65000":
+                                    {
+                                        _class = "btnBanVe65";
+                                        break;
+                                    }
+                                case "70000":
+                                    {
+                                        _class = "btnBanVe70";
+                                        break;
+                                    }
+                                case "75000":
+                                    {
+                                        _class = "btnBanVe75";
+                                        break;
+                                    }
+                                case "80000":
+                                    {
+                                        _class = "btnBanVe80";
+                                        break;
+                                    }
+                                case "100000":
+                                    {
+                                        _class = "btnBanVe100";
+                                        break;
+                                    }
+                            }
+                            <td class="TdBanVe"  style="width:@withcol%;">
+                                @if (Model.HanhTrinhGiaVes[j - 1].Id > 0 && !Model.HanhTrinhGiaVes[j - 1].IsHetVe)
+                                {
+                                    _actionlink = string.Format("javascript:DatVe('{0}')", @Model.HanhTrinhGiaVes[j - 1].Id);
+                                    _SoLuongVeInput = "SoLuongVeInput";
+                                }
+                                <div class="@_SoLuongVeInput" data_htgiaveid="@Model.HanhTrinhGiaVes[j - 1].Id">
+                                    
+
+                                    <a href="@_actionlink" style="width:100%;height:100%">
+                                        <div class="@_class">
+                                            <span class="GiaVe">
+                                                @Model.HanhTrinhGiaVes[j - 1].GiaVeText
+                                            </span>
+                                            <br />
+                                            @if (string.IsNullOrEmpty(@Model.HanhTrinhGiaVes[j - 1].SoSeriHienTai))
+                                            {
+                                                <span class="hetve">
+
+                                                    Hết vé
+                                                </span><br />
+                                            }
+                                            else
+                                            {
+                                                <span>
+
+                                                    @Model.HanhTrinhGiaVes[j - 1].SoSeriHienTai
+                                                </span><br />
+                                            }
+
+                                            <span>
+                                                Còn @Model.HanhTrinhGiaVes[j - 1].SoVeConLai Vé
+                                            </span>
+                                        </div>
+
+
+
+                                    </a>
+                                </div>
+
+                            </td>
+                                        break;
+                        }
+                    case 2:
+                        {
+                            <td style="width:@withcol%;">
+                                @Model.HanhTrinhGiaVes[j - 1].SoVeDaBan
+                            </td>
+                            break;
+
+                        }
+                    case 3:
+                        {
+                            <td style="width:@withcol%;">
+
+                                <ul class="listseri">
+                                    @if (Model.HanhTrinhGiaVes[j - 1].SoVeDaBan > 0)
+                                    {
+                                        for (int m = 0; m < @Model.HanhTrinhGiaVes[j - 1].SoVeDaBan; m++)
+                                        {
+                                            <li>
+                                                @Model.HanhTrinhGiaVes[j - 1].VeXes[m].SoSeri
+                                                @if (@Model.HanhTrinhGiaVes[j - 1].VeXes[m].CanDelete)
+                                                {
+                                                    var function = string.Format("javascript:HuyVe('{0}','{1}','{2}')", @Model.HanhTrinhGiaVes[j - 1].VeXes[m].SoSeri, @Model.HanhTrinhGiaVes[j - 1].VeXes[m].MauVe, @Model.HanhTrinhGiaVes[j - 1].VeXes[m].KyHieu);
+
+                                                    <img id="imgdelete" src="~/Content/chonve/nhaxe/ico_delete.png" onclick="@function" alt="" />
+
+                                                }
+
+
+                                            </li>
+
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <li> No seri</li>
+                                    }
+
+                                </ul>
+                            </td>
+                                    break;
+                        }
+                }
+            }
+
+        }
+    </tr>
+}

@@ -1,0 +1,423 @@
+﻿@model HopDongChuyenModel
+@using Nop.Web.Models.NhaXes
+@using Nop.Core.Infrastructure;
+@Html.ValidationSummary(false)
+@Html.HiddenFor(model => model.Id)
+@{
+    var defaultGridPageSize = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().DefaultGridPageSize;
+    var gridPageSizes = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().GridPageSizes;
+    
+}
+<style>
+    .LegendTitle {
+        height: 20px;
+        font-size: initial;
+        padding: 5px;
+        color: #673AB7;
+        font-weight: bold;
+        border: 1px solid #03A9F4;
+        border-radius: 5px;
+    }
+
+    .fieldset {
+        border: 1px solid rgba(139, 195, 74, 0.44);
+        margin-left: 20px;
+        margin-top: 20px;
+    }
+</style>
+<fieldset class="fieldset">
+    <legend class="LegendTitle">
+        <label>
+            <img src="@Url.Content("~/Administration/Content/images/ico-orderstatus.png")" alt="" />
+            Thông tin hợp đồng
+        </label>
+    </legend>
+    <table style="width:100%">
+        <tr>
+            <td style="vertical-align:top">
+              
+                <table class="adminContent">
+                    <tr>
+                        <td class="adminTitle">
+                            Số hợp đồng:
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(m=>m.SoHopDong)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            Tên hợp đồng:
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.TenHopDong)
+                           
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            Biển số xe:
+                        </td>
+                        <td class="adminData">
+                            <input id="cbbSearchXe" style="width:280px" value="@Model.BienSoXe" />
+                            @Html.HiddenFor(model => model.XeVanChuyenId)
+                          
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            Lái xe:
+                        </td>
+                        <td class="adminData">
+                            <input id="cbbLaiXeInput" style="width:250px" value="@Model.TenLaiXe" />
+                            @Html.HiddenFor(model => model.LaiXeId)
+                            <script>
+                                $(document).ready(function () {
+                                    function dataSearchNguoiNhan() {
+                                        var _hovaten = $('#cbbLaiXeInput').data("kendoComboBox").text();
+                                        return {
+                                            SearchKhachhang: _hovaten
+                                        };
+                                    }
+                                    $('#cbbLaiXeInput').kendoComboBox({
+                                        placeholder: "Tên lái xe",
+                                        dataTextField: "HoTen",
+                                        dataValueField: "Id",
+                                        filter: "contains",
+                                        autoBind: false,
+                                        minLength: 2,
+                                        dataSource: {
+                                            type: "json",
+                                            serverFiltering: true,
+                                            transport: {
+                                                read: {
+                                                    url: "@Html.Raw(Url.Action("CBBNhanVienNhanVe", "GiaoDichKeVe"))",
+                                                    data: dataSearchNguoiNhan
+                                                }
+                                            }
+                                        },
+                                        change: onChangeGui
+                                    });
+                                    function onChangeGui(e) {
+                                        //alert(e.index);
+                                        var DataItem = this.dataItem();
+                                        $("#@Html.FieldIdFor(model => model.LaiXeId)").val(DataItem.Id);
+
+                                    }
+                                });
+                            </script>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            KM Xuất:
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.KmXuat)
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            Giá trị hợp đồng:
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.GiaTri)
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                           Thời gian đón khách:
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.ThoiGianDonKhach) &nbsp; @Html.EditorFor(model => model.GioDonKhach, "TimePicker")                            
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            Hình thức thanh toán:
+                        </td>
+                        <td class="adminData">
+                           @Html.DropDownListFor(model=>model.HinhThucThanhToanId,Model.HTThanhToans)
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            Thời gian trả khách:
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.ThoiGianTraKhach) &nbsp; @Html.EditorFor(model => model.GioTraKhach, "TimePicker")
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+            <td style="vertical-align:top">
+              
+                <table class="adminContent">
+                    <tr>
+                        <td class="adminTitle">
+                            Điểm đón khách:
+                        </td>
+                        <td class="adminData">
+                           @Html.TextAreaFor(m=>m.DiemDonKhach)
+                        </td>
+                    </tr>
+               
+                    <tr>
+                        <td class="adminTitle">
+                            Điểm trả khách:
+                        </td>
+                        <td class="adminData">
+                            @Html.TextAreaFor(m => m.DiemTraKhach)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            Lộ trình:
+                        </td>
+                        <td class="adminData">
+                            @Html.TextAreaFor(model => model.LoTrinh)
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            Chiều về:
+                        </td>
+                        <td class="adminData">
+                            @Html.TextAreaFor(model => model.ChieuVe)
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="adminTitle">
+                            Ghi chú:
+                        </td>
+                        <td class="adminData">
+                            @Html.TextAreaFor(m => m.GhiChu)
+                        </td>
+                    </tr>
+                    <tr></tr>
+                </table>
+            </td>
+        </tr>
+      
+        @if (Model.Id > 0)
+        {
+            <tr>
+
+                <td colspan="2">
+                   
+                    <div class="options">
+                        <input type="button" id="btnThemMoiKhachHang" class="k-button" value="Thêm mới khách hàng" />
+                    </div>
+                   
+                    <div id="KhachHang_grid"></div>
+                    <script>
+                            $(document).ready(function () {
+
+                                $("#KhachHang_grid").kendoGrid({
+                                    dataSource: {
+                                        type: "json",
+                                        transport: {
+                                            read: {
+                                                url: "@Html.Raw(Url.Action("GetKhachHangInHopDongChuyen", "HopDongChuyen"))",
+                                                type: "POST",
+                                                dataType: "json",
+                                                data: additionalData
+                                            },
+                                            update: {
+                                                url:"@Html.Raw(Url.Action("KhachHangChuyenUpdate", "HopDongChuyen"))",
+                                                type: "POST",
+                                                dataType: "json"
+                                            },
+                                            destroy: {
+                                                url: "@Html.Raw(Url.Action("KhachHangChuyenDelete", "HopDongChuyen"))",
+                                                type: "POST",
+                                                dataType: "json"
+                                            }
+                                        },
+                                        schema: {
+                                            data: "Data",
+                                            total: "Total",
+                                            errors: "Errors",
+                                            model: {
+                                                id: "Id",
+                                                fields: {
+                                                    TenKhachHang: { editable: true, type: "string" },
+                                                    SoDienThoai: { editable: true, type: "string" },
+                                                    NamSinh: { editable: true, type: "number" },
+                                                    isDaiDien: { editable: true, type: "boolean" },
+                                                    GhiChu: { editable: true, type: "string" },                                                  
+
+                                                }
+                                            }
+                                        },
+                                        requestEnd: function (e) {
+                                            if ( e.type == "update") {
+                                                this.read();
+                                            }
+                                        },
+                                        error: function(e) {
+                                            display_kendoui_grid_error(e);
+                                            // Cancel the changes
+                                            this.cancelChanges();
+                                        },
+                                        pageSize: @(defaultGridPageSize),
+                                        serverPaging: true,
+                                        serverFiltering: true,
+                                        serverSorting: true
+                                    },
+                                    pageable: {
+                                        refresh: true,
+                                        pageSizes: [@(gridPageSizes)],
+                                        messages: {
+                                            display: "@T("Nop.Common.KendoGrid.display")", //{0} is the index of the first record on the page, {1} - index of the last record on the page, {2} is the total amount of records
+                                            empty: "@T("Nop.Common.KendoGrid.Empty")",
+                                            page: "@T("Nop.Common.KendoGrid.Page")",
+                                            of: "@T("Nop.Common.KendoGrid.Of")", //{0} is total amount of pages
+                                            itemsPerPage: "@T("Nop.Common.KendoGrid.itemsPerPage")",
+                                            first: "@T("Nop.Common.KendoGrid.first")",
+                                            previous: "@T("Nop.Common.KendoGrid.previous")",
+                                            next: "@T("Nop.Common.KendoGrid.next")",
+                                            last: "@T("Nop.Common.KendoGrid.last")",
+                                            refresh: "@T("Nop.Common.KendoGrid.refresh")"
+                                        }
+                                    },
+                                    editable: {
+                                        confirmation: "@T("Admin.Common.AreYouSure")",
+                                        mode: "inline"
+                                    },
+                                    scrollable: false,
+                                    columns: [{
+                                        field: "TenKhachHang",
+                                        title: "Tên khách hàng",
+                                        width: 200
+                                    }, {
+                                        field: "SoDienThoai",
+                                        title: "Số điện thoại",
+                                       
+                                        width: 250
+                                    }, {
+                                        field: "NamSinh",
+                                        title: "Năm sinh",                                      
+                                        width: 100
+                                    }, {
+                                        field: "isDaiDien",  
+                                        title: "Là người đại diện", 
+                                        width: 150,
+                                        template: '#=isDaiDien?"Đại diện":""#'
+
+                                    },
+                                    {
+                                        field: "GhiChu",
+                                        title: "Ghi chú",
+
+                                    },{
+                                        command: [{
+                                            name: "edit",
+                                            text: "@T("Admin.Common.Edit")"
+                                        }, {
+                                            name: "destroy",
+                                            text: "@T("Admin.Common.Delete")"
+                                        }],
+                                        width: 200
+                                    }]
+                                });
+                            });
+
+                            //local datasource
+                        
+                            function additionalData() {
+                                return {
+                                    hopdongchuyenid: $('#@Html.FieldIdFor(model => model.Id)').val(),
+
+                                };
+                            }
+                           
+                    </script>
+                  
+
+                </td>
+            </tr>
+        }
+    </table>
+
+</fieldset>
+<script>
+   
+    $(document).ready(function () {
+        function dataSearchXe() {
+            var _hovaten = $('#cbbSearchXe').data("kendoComboBox").text();
+            return {
+                BienSoText: _hovaten
+            };
+        }
+        $('#cbbSearchXe').kendoComboBox({
+            placeholder: "Biển số",
+            dataTextField: "Text",
+            dataValueField: "Value",
+            filter: "contains",
+            autoBind: false,
+            minLength: 2,
+            dataSource: {
+                type: "json",
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "@Html.Raw(Url.Action("BienSoList", "NhaXes"))",
+                        data: dataSearchXe
+                }
+            }
+        },
+            change: onChangeGiao
+    });
+    function onChangeGiao(e) {
+        //alert(e.index);
+        var DataItem = this.dataItem();
+        $("#@Html.FieldIdFor(model => model.XeVanChuyenId)").val(DataItem.Value);
+        $("#@Html.FieldIdFor(model => model.BienSoXe)").val(DataItem.text);
+
+    }
+        $("#btnThemMoiKhachHang").click(function(){
+            var hopdongchuyenid=$('#@Html.FieldIdFor(model => model.Id)').val();
+            ThemHopDongChuyen(hopdongchuyenid);
+        });
+
+
+    });
+    
+    function ThemHopDongChuyen(hopdongchuyenid) {
+        var formopen = $("#PopupKhachHangTao");
+        formopen.kendoWindow({
+            width: "785px",
+            title: "Thêm khách hàng",
+            content: "@(Url.Action("KhachHangChuyenInfo", "HopDongChuyen"))?hopdongchuyenid=" +hopdongchuyenid  ,
+
+            actions: [
+                "Close"
+            ]
+        }).data('kendoWindow').center();
+        formopen.data('kendoWindow').open();
+    }
+    function SetCloseWindowHDChuyen() {
+        $("#PopupKhachHangTao").data('kendoWindow').close();
+        var grid = $('#KhachHang_grid').data('kendoGrid');
+        grid.dataSource.read();
+    }
+    function SetCenterWindowHDChuyen() {
+        $("#PopupKhachHangTao").data('kendoWindow').center();
+    }
+</script>
+<div id="PopupKhachHangTao">
+
+</div>
+
+
+
+

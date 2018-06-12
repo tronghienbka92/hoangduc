@@ -1,0 +1,14 @@
+﻿@model QuanLyChuyenModel
+@using Nop.Services.NhaXes
+@foreach(var item in Model.arrDatVeCopy)
+{
+    <text>
+    [@item.Ma (<a href="javascript:ChuyenVeDelete(@item.Id)" class="k-link" style="color:red;font-style:normal;">Xóa</a>)]&nbsp;
+   </text>  
+}
+@if(Model.arrDatVeCopy.Count>1)
+{
+    <text>
+[<a href="javascript:ChuyenVeDelete(-1)" class="k-link" style="color:red;font-style:normal;">Xóa tất cả</a>]&nbsp;    
+</text>
+}

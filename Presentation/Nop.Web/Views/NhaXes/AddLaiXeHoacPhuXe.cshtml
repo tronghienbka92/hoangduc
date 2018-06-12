@@ -1,0 +1,241 @@
+﻿@model Nop.Web.Models.VeXeKhach.XeXuatBenModel
+@Html.HiddenFor(model => model.NguonVeId)
+@Html.HiddenFor(model => model.NgayXuatBen)
+@Html.HiddenFor(model => model.LaiXe1Id)
+@Html.HiddenFor(model => model.TenLaiXe1)
+@Html.HiddenFor(model => model.LaiXe2Id)
+@Html.HiddenFor(model => model.TenLaiXe2)
+@Html.HiddenFor(model => model.XeXuatBenId)
+@{
+    Layout = null;
+}
+
+@*if(!Model.CanXuatBen)
+    {
+        <p>Thông báo: đã hết thời gian có thể chỉnh sửa thông tin xuất bến</p>
+    }
+    else
+    {*@
+<div class="section-header">
+    <div class="options">
+        @if (Model.XeXuatBenId > 0)
+        {
+            <input type="button" id="BtnHuyXuatBen" class="k-button" value="Hủy xuất bến" />
+        }
+
+        <input type="button" id="BtnAddLaiXe" class="k-button" value="@T("Nop.Web.PhuTrachChuyen.HoanTat")" />
+    </div>
+</div>
+
+
+
+<table width="80%" style="margin:20px">
+    <tr style="height:50px">
+        <td style="width:100px;text-align:left">
+            @Html.NopLabelFor(model => model.TenLaiPhuXe):
+        </td>
+        <td>
+            <select id="LaiPhuXes"></select>
+
+        </td>
+
+    </tr>
+    <tr>
+        <td style="text-align:left">
+            @Html.NopLabelFor(model => model.TenBienSoXe):
+        </td>
+        <td >
+            <input id="CbbXeVanChuyen" value="@Model.TenBienSoXe" />
+            @Html.HiddenFor(model => model.XeVanChuyenId)
+            @Html.HiddenFor(model => model.TenBienSoXe)
+
+        </td>
+
+    </tr>
+</table>
+<script>
+    $(document).ready(function () {
+        $('#LaiPhuXes').focus();
+        $("#LaiPhuXes").keydown(function (event) {
+            if (event.keyCode == 13) {
+                var _val = $('#LaiPhuXes').val();
+                if (_val != "") {
+                    $('#CbbXeVanChuyen').siblings('input:visible').focus();
+                }
+
+                return false;
+            }
+        });
+        $("#CbbXeVanChuyen").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $("#BtnAddLaiXe").click();
+                return false;
+            }
+        });
+
+
+        var dataselect=[
+
+                @if(Model.LaiXe1Id>0)
+        {
+                    <text>
+                    {
+                        Id:@Model.LaiXe1Id,
+                        TenLaiXe:"@(Html.Raw(HttpUtility.JavaScriptStringEncode(@Model.TenLaiXe1)))"
+                    }
+                    </text>
+    },
+                @if(Model.LaiXe2Id>0)
+    {
+            <text>
+            {
+                Id:@Model.LaiXe2Id,
+                TenLaiXe:"@(Html.Raw(HttpUtility.JavaScriptStringEncode(@Model.TenLaiXe2)))"
+            }
+            </text>
+    }
+            ,
+                @if(Model.LaiXe3Id>0)
+                {
+                    <text>
+                    {
+                        Id:@Model.LaiXe3Id,
+                        TenLaiXe:"@(Html.Raw(HttpUtility.JavaScriptStringEncode(@Model.TenLaiXe3)))"
+                    }
+                    </text>
+                }
+        ];
+        var datasoures = [
+                @for (int i = 0; i < Model.LaiXePhuXes.Count; i++)
+        {
+            var _item = Model.LaiXePhuXes[i];
+            <text>
+        {
+            Id: @(_item.Id),
+            TenLaiXe: "@(Html.Raw(HttpUtility.JavaScriptStringEncode(_item.TenLaiXe)))"
+        }
+        </text>
+            if (i != Model.LaiXePhuXes.Count - 1)
+            {
+                <text>,</text>
+            }
+        }
+        ];
+
+        $("#LaiPhuXes").kendoMultiSelect({
+            placeholder: "Chọn lái xe, NTV...",
+            dataTextField: "TenLaiXe",
+            dataValueField: "Id",
+            filter: "contains",
+            maxSelectedItems: 3,
+            minLength: 1,
+            autoBind: false,
+            dataSource: {
+                data:datasoures
+            },
+            value:dataselect,
+            change: function(e) {
+                var value = this.value();
+                // Use the value of the widget
+            }
+        });
+
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $('#CbbXeVanChuyen').kendoComboBox({
+            placeholder: "Chọn biển số",
+            dataTextField: "Text",
+            dataValueField: "Value",
+            filter: "contains",
+            autoBind: false,
+            minLength: 1,
+            dataSource: {
+                type: "json",
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "@Html.Raw(Url.Action("BienSoList", "NhaXes"))",
+                        data: additionalData
+                    }
+                }
+            },
+            change: onChange
+        });
+        function onChange() {
+            $("#@Html.FieldIdFor(model => model.XeVanChuyenId)").val($('#CbbXeVanChuyen').data("kendoComboBox").value());
+            $("#@Html.FieldIdFor(model => model.TenBienSoXe)").val($('#CbbXeVanChuyen').data("kendoComboBox").text());
+        }
+        function additionalData() {
+            return {
+
+                BienSoText: $('#CbbXeVanChuyen').data("kendoComboBox").text()
+            };
+        }
+
+    });
+</script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#BtnAddLaiXe').click(function () {
+            if ($('#@Html.FieldIdFor(model => model.XeVanChuyenId)').val() == 0) {
+                return alert("Bạn chưa chọn biển số xe");
+            }
+            var multiSelectLaiPhuXe = $('#LaiPhuXes').data('kendoMultiSelect');
+            var laiphuxeids = multiSelectLaiPhuXe.value().join(",");
+            if (laiphuxeids == "") {
+                return alert("Bạn chưa chọn nhân viên");
+            }
+            var XeVanChuyenId = $('#@Html.FieldIdFor(model => model.XeVanChuyenId)').val();
+            var NgayXuatBen = $('#@Html.FieldIdFor(model => model.NgayXuatBen)').val();
+            var NguonVeId = $('#@Html.FieldIdFor(model => model.NguonVeId)').val();
+
+            $.ajax({
+                cache: false,
+                type: "POST",
+                data: { "laiphuxeids": laiphuxeids, "XeVanChuyenId": XeVanChuyenId, "NgayXuatBen": NgayXuatBen, "NguonVeId": NguonVeId },
+                dataType: 'json',
+                url: "@(Url.Action("AddLaiXeHoacPhuXe", "NhaXes"))",
+                success: function (data) {
+                    if (data == "ok") {
+                        SetCloseWindowLaiXe();
+                        RefreshChuyenDi();
+
+                    }
+                    else {
+                        alert("không thực hiện được");
+                    }
+
+                },
+            });
+        });
+        $('#BtnHuyXuatBen').click(function () {
+
+            var XeXuatBenId = $('#@Html.FieldIdFor(model => model.XeXuatBenId)').val();
+
+
+            $.ajax({
+                cache: false,
+                type: "POST",
+                data: {  "XeXuatBenId": XeXuatBenId },
+                dataType: 'json',
+                url: "@(Url.Action("HuyXuatBen", "NhaXes"))",
+                success: function (data) {
+                    if (data == "OK") {
+                        SetCloseWindowLaiXe();
+                        RefreshChuyenDi();
+
+                    }
+                    else {
+                        alert("Không có xe xuất bến");
+                    }
+
+                },
+            });
+        });
+
+    });
+
+</script>

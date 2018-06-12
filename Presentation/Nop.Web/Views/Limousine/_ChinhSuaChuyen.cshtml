@@ -1,0 +1,64 @@
+﻿@model ChuyenDiModel
+@using Nop.Services.NhaXes
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            Thời gian chạy:
+        </td>
+        <td class="adminData">
+            <input id="txtthoigiandithuc" value="@Model.NgayDiThuc.ToString("HH:mm")" style="width: 70px;" />
+
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Loại xe:
+        </td>
+        <td class="adminData">
+            @Html.DropDownListFor(m => m.LoaiXeId, Model.LoaiXes)
+        </td>
+    </tr>      
+    <tr>
+        <td colspan="2">
+            &nbsp;
+        </td>
+    </tr>  
+    <tr>
+        <td colspan="2" style="text-align:center">
+            <button id="btnTaoChuyenDi" class="k-button" style="width:180px;height:40px">Đồng ý</button>
+        </td>
+    </tr>
+</table>
+<script>
+    $(document).ready(function () {
+        $("#txtthoigiandithuc").kendoTimePicker({
+            format: "HH:mm"
+        });
+        $("#btnTaoChuyenDi").click(function () {
+          
+            var _ngaydi = ConvertDateTimeSystem($("#@Html.FieldIdFor(m=>m.NgayDi)").val());
+            var _thoigiandidate = $('#txtthoigiandithuc').data("kendoTimePicker").value();
+            var _thoigiandi = kendo.toString(_thoigiandidate, "yyyy-MM-dd HH:mm:ss")
+            
+            var dataadd = {
+                "HanhTrinhId": @Model.HanhTrinhId,
+                "ThoiGianDi": _thoigiandi,
+                "LoaiXeId": $('#@Html.FieldIdFor(m => m.LoaiXeId)').val(),
+                "NgayDi": _ngaydi
+            };
+
+            $.ajax({
+                cache: false,
+                type: "POST",
+                data: dataadd,
+                url: "@(Url.Action("TaoMoiChuyenDi", "Limousine"))",
+                success: function (data) {
+                    CloseWindowThemMoiChuyenDi();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    return alert('Error chon ghe');
+                }
+            });
+        })
+    });
+</script>

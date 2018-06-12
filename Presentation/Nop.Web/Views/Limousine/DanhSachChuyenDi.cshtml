@@ -1,0 +1,188 @@
+﻿@model DanhSachChuyenDiModel
+@using Nop.Core.Infrastructure
+@using Nop.Core.Domain.NhaXes;
+@using Nop.Web.Models.NhaXes
+@using Nop.Services.NhaXes
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+}
+
+<table style="width:100%">
+    <tr>
+        <td>
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Thông tin biển số hoặc lái xe:
+                    </td>
+                    <td class="adminData">
+                        @Html.TextBoxFor(model=>model.ThongTinChuyenDi)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Hành trình:
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.HanhTrinhId, Model.HanhTrinhs)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Ngày đi:
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.NgayDi)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="20%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Khung giờ:
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.KhungGioId, Model.khunggios)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <input type="button" id="btnSearch" class="k-button" value="Tìm kiếm" />
+        </td>
+    </tr>
+</table>
+@if (Model.IsQuyenTaoChuyen)
+{ <div style="text-align:right">
+        <a href="javascript:ThemMoiChuyenDi()" class="k-button">Tạo mới chuyến đi</a>
+    </div>}
+
+<div id="FormWindowTaoChuyenDi" style="display:none">
+</div>
+<div id="tabChuyenDi" style="width:100%;"></div>
+<script>
+    var laiphuxedatasoures = [
+                       @for (int i = 0; i < Model.AllLaiXePhuXes.Count; i++)
+    {
+        var _item = Model.AllLaiXePhuXes[i];
+        <text>
+    {
+        Id: @(_item.Id),
+        TenLaiXe: "@(Html.Raw(HttpUtility.JavaScriptStringEncode(_item.ThongTin)))"
+    }
+    </text>
+        if (i != Model.AllLaiXePhuXes.Count - 1)
+        {
+            <text>,</text>
+        }
+    }
+    ];
+    //tao thong tin xe
+    var xevanchuyendatasoures = [
+           @for (int i = 0; i < Model.AllXeInfo.Count; i++)
+    {
+        var _item = Model.AllXeInfo[i];
+        <text>
+    {
+        Id: @(_item.Id),
+        BienSo: "@(Html.Raw(HttpUtility.JavaScriptStringEncode(_item.BienSo)))"
+    }
+    </text>
+        if (i != Model.AllXeInfo.Count - 1)
+        {
+            <text>,</text>
+        }
+    }
+    ];
+    function ThemMoiChuyenDi() {
+        var _formtemp = $("#FormWindowTaoChuyenDi");
+        var _hanhtrinhid = $("#@Html.FieldIdFor(m=>m.HanhTrinhId)").val();
+        _formtemp.html('');
+        _formtemp.kendoWindow({
+            width: "500px",
+            height: "220px",
+            title: "Tạo chuyến đi",
+            content: "@(Url.Action("_ChinhSuaChuyen", "Limousine"))?HanhTrinhId="+_hanhtrinhid,
+            modal: true,
+            actions: [
+                "Close"
+            ],
+        }).data("kendoWindow").center();
+        _formtemp.data('kendoWindow').open();
+    }
+    function CloseWindowThemMoiChuyenDi() {
+        $("#FormWindowTaoChuyenDi").data('kendoWindow').close();
+        LoadChuyenDi();
+    }
+    function LoadChuyenDi() {
+        var _hanhtrinhid = $("#@Html.FieldIdFor(m=>m.HanhTrinhId)").val();
+        var _ngaydi = ConvertDateTimeSystem($("#@Html.FieldIdFor(m=>m.NgayDi)").val());
+        var _khunggioid = $("#@Html.FieldIdFor(m=>m.KhungGioId)").val();
+        var _thongtin = $("#@Html.FieldIdFor(m=>m.ThongTinChuyenDi)").val();
+        var additionalData = {
+            HanhTrinhId: _hanhtrinhid,
+            KhungGioId:_khunggioid,
+            NgayDi: _ngaydi,
+            ThongTinChuyenDi:_thongtin
+        };
+        $.ajax({
+            cache: false,
+            type: "GET",
+            dataType: "html",
+            contentType: 'application/html;charset=utf-8',
+            data: additionalData,
+            url: "@(Url.Action("_DanhSachChuyenDi", "Limousine"))",
+            success: function (data) {
+
+                if (data != null)
+                {
+                    $("#tabChuyenDi").html(data);
+                }
+                else
+                {
+                    $("#tabChuyenDi").html("<p>Không có quyền</p>")
+                }
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert('Chưa đủ thông tin');
+            }
+        });
+    }
+    $(document).ready(function () {
+        LoadChuyenDi();
+        //load lai thong tin lich trinh thuoc hanh trinh dang chon
+        $('#@Html.FieldIdFor(model => model.HanhTrinhId)').change(function () {
+            LoadChuyenDi();
+        });
+        $('#@Html.FieldIdFor(model => model.KhungGioId)').change(function () {
+            LoadChuyenDi();
+        });
+        $("#@Html.FieldIdFor(model => model.NgayDi)").change(function () {
+            LoadChuyenDi();
+        });
+        $("#@Html.FieldIdFor(model => model.ThongTinChuyenDi)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                LoadChuyenDi();
+            }
+        });
+        $('#btnSearch').click(function () {
+            LoadChuyenDi();
+            return false;
+        });
+    });
+
+</script>
+
+
+

@@ -1,0 +1,110 @@
+﻿@model DoanhThuNhanVienLuotModel
+@using Nop.Web.Models.NhaXeBaoCao
+
+<table class="BangGiaVe">
+    @for (int i = 0; i < Model.SoNhanVien + 2; i++)
+    {
+        var nhavienid = 0;
+        if (i < Model.SoNhanVien + 1)
+        {
+            <tr style="text-align:center">
+                @for (int j = 0; j < Model.SoNhan + 2; j++)
+                {
+                    
+                    var withcol = "50px";
+                    if (j == 0)
+                    {
+                        withcol = "300px";
+                    }
+                    <td style="width:@withcol">
+                        @if (i == 0 && j > 0 && j < Model.SoNhan + 1)
+                        {
+                            <span> @Model.DoanhThuLuot[0, j].Nhan</span>
+
+                        }
+                        @if (j == 0 && i > 0)
+                        {
+                            <div style="float:left"> @Model.DoanhThuLuot[i, 0].TenNhanVien</div>
+
+                        }
+                        @if (i > 0 && j > 0 && j < Model.SoNhan + 1)
+                        {
+                           nhavienid=Model.DoanhThuLuot[i, j].NhanVienId;
+                            if (Model.DoanhThuLuot[i, j].soLuot > 0)
+                            {
+                                <span> @Model.DoanhThuLuot[i, j].soLuot</span>
+                            }
+
+
+                        }
+                        @if (j == Model.SoNhan + 1)
+                        {
+
+                            if (i == 0)
+                            {
+                                <span>Tổng</span>
+                            }
+                            else
+                            {
+                                <span>@Model.ListDTLuot.Where(c=>c.NhanVienId==nhavienid).Sum(c=>c.soLuot)</span>
+                            }
+
+
+                        }
+                    </td>
+                }
+
+            </tr>
+        }
+        else
+        {
+            <tr style="text-align:center">
+                @for (int j = 0; j < Model.SoNhan + 2; j++)
+                {
+
+                    var withcol = "50px";
+                    if (j == 0)
+                    {
+                        withcol = "300px";
+                    }
+                    <td style="width:@withcol">
+                      
+                       
+                           
+                            @if (j == 0)
+                            {
+                                <span>Tổng</span>
+                            }
+                            
+                          @if(j>0 && j<Model.SoNhan+1)
+                            {
+                                
+                                <span>@Model.ListDTLuot.Where(c=>c.Nhan==j).Sum(m=>m.soLuot)</span>
+                            }
+                           @if (j == Model.SoNhan + 1)
+                           {
+                            <span>@Model.ListDTLuot.Sum(m => m.soLuot)</span>
+                           }
+
+                    </td>
+                }
+
+            </tr>
+        }
+
+    }
+</table>
+
+<style>
+     .BangGiaVe {
+                border-collapse: collapse;                
+               
+            }
+       .BangGiaVe, .BangGiaVe tr, .BangGiaVe tr td {
+            border: 1px solid #928d8d;
+        }
+       .BangGiaVe tr
+       {
+           height:30px;
+       }
+</style>

@@ -1,0 +1,380 @@
+﻿@model DanhSachChuyenDiModel
+@using Nop.Web.Models.NhaXes
+@using Nop.Core.Domain.Chonves
+@using Nop.Core.Domain.NhaXes;
+<div>
+    @DanhSachXe(Model.ChuyenDis)
+</div>
+<div style="height:120px">&nbsp;</div>
+@helper DanhSachXe(List<ChuyenDiModel> items)
+{
+    <table id="BangDanhSach">
+        <thead>
+            <tr>
+                <td>STT</td>
+                <td>Mã</td>
+                <td>Tuyến xe</td>
+                @if (Model.IsQuyenTaoChuyen)
+                {
+                    <td>Thời gian đi</td>}
+
+                <td>Số khách</td>
+                <td>Trạng thái</td>
+                @if (Model.IsQuyenTaoChuyen)
+                {
+                    <td style="width:150px">Biển số</td>
+                    <td style="width:233px">Lái xe</td>
+
+                    <td></td>
+                }
+
+
+                <td></td>
+                <td>Nhật ký</td>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < items.Count(); i++)
+            {
+                int laixeid = 0, biensoid = 0;
+                string _nodisplayclass = "khonghienthi";
+                if (items[i].Id > 0)
+                {
+                    _nodisplayclass = "";
+                    laixeid = items[i].LaiXeId.GetValueOrDefault(0);
+                    biensoid = items[i].XeVanChuyenId.GetValueOrDefault(0);
+                }
+
+                var _class = "";
+                if (i % 2 == 0)
+                {
+                    _class = "RowColor";
+                }
+                <tr class="@_class">
+                    <td>
+                        @(i + 1)
+                    </td>
+                    <td style="font-weight: 900;font-size: 14px;">
+                        @items[i].NgayDiThuc.ToString("HH:mm")
+                    </td>
+                    <td>
+                        @items[i].TenHanhTrinh
+                    </td>
+                    @if (Model.IsQuyenTaoChuyen)
+                    {
+                        <td>
+                            @items[i].NgayDiThuc.ToString("dd-MM-yyyy") &nbsp;<input name="txtthoigiandi" id="txtthoigiandi_@items[i].Id" value="@items[i].NgayDiThuc.ToString("HH:mm")" style="width: 70px;" />
+                        </td>
+                    }
+
+                    <td>
+                        <a href="javascript:ThongTinHanhKhach(@items[i].Id)">@items[i].SoKhach / @items[i].SoGhe</a>
+                    </td>
+                    <td>
+                        <span id="sptrangthai_@items[i].Id">
+                            @items[i].TrangThaiText
+                            @if (items[i].isEdit && items[i].Id > 0 && (items[i].trangthai == ENTrangThaiXeXuatBen.DU_KIEN || items[i].trangthai == ENTrangThaiXeXuatBen.CHO_XUAT_BEN))
+                            {
+                                <br />
+                                <a href="javascript:XuatBenChuyenDi(@items[i].Id )">Xuất Bến</a> <br />
+
+                            }
+                            @if (items[i].isEdit && items[i].Id > 0 && (items[i].trangthai == ENTrangThaiXeXuatBen.DANG_DI))
+                            {
+                                <br />
+
+                                <a href="javascript:KetThucChuyenDi(@items[i].Id )">kêt thúc</a>
+                            }
+                        </span>
+                    </td>
+
+                    @if (Model.IsQuyenTaoChuyen)
+                    {
+                        <td>
+                            <input name="CBBXe" id="cbbBienSo_@items[i].Id" style="width:100%" value_dataid="@biensoid" />
+                        </td>
+                        <td>
+                            <input name="CBBNhanVien" id="cbbLaiXe_@items[i].Id" style="width:100%" value_dataid="@laixeid" />
+                        </td>
+                        <td>
+                            <div id="actionedit_@items[i].Id" style="width:100%;text-align:center;margin:3px;">
+                                @if (items[i].isEdit)
+                                {
+                                    <text>
+                                        <a href="javascript:LuuThongTin(@items[i].Id)" class="k-button"><img src="~/Content/chonve/nhaxe/edit_action.png" /></a>&nbsp; &nbsp;
+                                        <span class="@_nodisplayclass" id="lnkhuyechuyen_@items[i].Id"><a class="k-button" href="javascript:HuyChuyenDi(@items[i].Id)"><img src="~/Content/chonve/nhaxe/cancel_action.png" /></a></span>
+                                    </text>
+                                }
+                            </div>
+                        </td>
+                    }
+                    <td>
+                        <div id="inphieu_action_@items[i].Id" class="@_nodisplayclass">
+                            <a href="/Limousine/PrinfPhoiVe?Id=@items[i].Id" class="k-button" target="_blank">In phơi</a><br />
+                            <a href="/NhaXeCauHinh/InPhieu?MaId=@((int)Nop.Core.Domain.NhaXes.ENNhaXeCauHinh.VE_MAU_IN_PHOI)&Id=@items[i].Id" class="k-button" target="_blank">Giấy đi đường</a>
+                            <a href="/NhaXeCauHinh/InPhieu?MaId=@((int)Nop.Core.Domain.NhaXes.ENNhaXeCauHinh.LENH_PHU_DON_KHACH)&Id=@items[i].Id" class="k-button" target="_blank">Lệnh phụ</a>
+                            <a href="/NhaXeCauHinh/InPhieu?MaId=@((int)Nop.Core.Domain.NhaXes.ENNhaXeCauHinh.LENH_DIEU_DONG_XE)&Id=@items[i].Id" class="k-button" target="_blank">Lệnh điều xe</a>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="javascript:XemNhatKy(@items[i].Id)">Xem nhật ký</a>
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+
+}
+<div id="divHanhKhach"></div>
+<script>
+
+    $(document).ready(function () {
+        ThongTinBienSo();
+        ThongTinLaiPhuXe();
+        ThongTinThoiGianDi();
+    });
+    function ThongTinHanhKhach(ChuyenDiId) {
+        var windowhanhkhach = $("#divHanhKhach");
+        windowhanhkhach.html("");
+
+        windowhanhkhach.kendoWindow({
+            modal: true,
+            width: "960px",
+            height: "450px",
+            title: "Thông tin hành khách đi theo chuyến",
+            content: "@(Url.Action("_ChitietKhachTheoChuyen", "Limousine"))" + "?ChuyenDiId=" + ChuyenDiId,
+            actions: ["Close"]
+        });
+
+        windowhanhkhach.data('kendoWindow').center().open();
+    }
+    function KetThucChuyenDi(ChuyenDiId) {
+
+        var _data = { "ChuyenDiId": ChuyenDiId };
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: _data,
+            dataType: 'json',
+            url: "@(Url.Action("KetThutChuyenDi", "Limousine"))",
+            success: function (data) {
+                if (data) {
+                    //hien thi ket qua
+                    $('#sptrangthai_' + ChuyenDiId).html(data.TrangThaiText);//+"<br /><a href='javascript:KetThucChuyenDi(" + data.Id + ")'>Kết thúc</a>");
+
+                }
+                else {
+                    alert("Có lỗi");
+                }
+
+            },
+        });
+    }
+
+    function LuuThongTin(ChuyenDiId) {
+        var _laixeid = $('#cbbLaiXe_' + ChuyenDiId).data("kendoComboBox").value();
+        var _biensoxeid = $('#cbbBienSo_' + ChuyenDiId).data("kendoComboBox").value();
+        if (_biensoxeid == "") {
+            alert("Bạn chưa chọn biển số xe");
+            $("#cbbBienSo_" + ChuyenDiId).data("kendoComboBox").input.focus();
+            return;
+        }
+        if (_laixeid == "") {
+            alert("Bạn chưa chọn lái xe");
+            $("#cbbLaiXe_" + ChuyenDiId).data("kendoComboBox").input.focus();
+            return;
+        }
+        var _thoigiandidate = $('#txtthoigiandi_' + ChuyenDiId).data("kendoTimePicker").value();
+        var _thoigiandi = kendo.toString(_thoigiandidate, "yyyy-MM-dd HH:mm:ss")
+        var _data = { "LaiXeId": _laixeid, "XeVanChuyenId": _biensoxeid, "ChuyenDiId": ChuyenDiId, "ThoiGianDi": _thoigiandi };
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: _data,
+            dataType: 'json',
+            url: "@(Url.Action("ThietLapChuyenDi", "Limousine"))",
+            success: function (data) {
+                if (data) {
+
+
+                    if(data.TrangThaiId==@((int)ENTrangThaiXeXuatBen.DU_KIEN)||data.TrangThaiId==@((int)ENTrangThaiXeXuatBen.CHO_XUAT_BEN))
+                    {
+                     $('#sptrangthai_' + ChuyenDiId).html(data.TrangThaiText + "<br /><a href='javascript:XuatBenChuyenDi(" + data.Id + ")'>Xuất bến</a>");
+                }
+                else
+                {
+                    $('#sptrangthai_' + ChuyenDiId).html(data.TrangThaiText);
+                }
+
+
+            }
+        else {
+                    alert("Có lỗi");
+    }
+
+    },
+    });
+    }
+    function XuatBenChuyenDi(ChuyenDiId) {
+        var _laixeid = $('#cbbLaiXe_' + ChuyenDiId).data("kendoComboBox").value();
+        var _biensoxeid = $('#cbbBienSo_' + ChuyenDiId).data("kendoComboBox").value();
+        if (_biensoxeid == "") {
+            alert("Bạn chưa chọn biển số xe");
+            $("#cbbBienSo_" + ChuyenDiId).data("kendoComboBox").input.focus();
+            return;
+        }
+        if (_laixeid == "") {
+            alert("Bạn chưa chọn lái xe");
+            $("#cbbLaiXe_" + ChuyenDiId).data("kendoComboBox").input.focus();
+            return;
+        }
+        var _thoigiandidate = $('#txtthoigiandi_' + ChuyenDiId).data("kendoTimePicker").value();
+        var _thoigiandi = kendo.toString(_thoigiandidate, "yyyy-MM-dd HH:mm:ss")
+        var _data = { "LaiXeId": _laixeid, "XeVanChuyenId": _biensoxeid, "ChuyenDiId": ChuyenDiId, "ThoiGianDi": _thoigiandi };
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: _data,
+            dataType: 'json',
+            url: "@(Url.Action("XuatBenChuyenDi", "Limousine"))",
+            success: function (data) {
+                if (data) {
+                    //hien thi ket qua
+                    $('#sptrangthai_' + ChuyenDiId).html(data.TrangThaiText);//+"<br /><a href='javascript:KetThucChuyenDi(" + data.Id + ")'>Kết thúc</a>");
+
+                }
+                else {
+                    alert("Có lỗi");
+                }
+
+            },
+        });
+    }
+    function HuyChuyenDi(Id) {
+        if (!confirm("Bạn có chắc chắn hủy thiết lập chuyến đi này không ?"))
+            return;
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: { ChuyenDiId: Id },
+            dataType: 'json',
+            url: "@(Url.Action("HuyThietLapChuyenDi", "Limousine"))",
+            success: function (data) {
+                if (data) {
+                    $('#sptrangthai_' + Id).html(data.TrangThaiText);
+                    $('#cbbLaiXe_' + Id).data("kendoComboBox").value("");
+                    $('#cbbBienSo_' + Id).data("kendoComboBox").value("");
+                }
+
+            },
+        });
+
+    }
+    function ThongTinThoiGianDi() {
+        $("input[name='txtthoigiandi']").each(function () {
+            $(this).kendoTimePicker({
+                format: "HH:mm"
+            });
+        });
+    }
+    function ThongTinLaiPhuXe() {
+
+        $("input[name='CBBNhanVien']").each(function () {
+            var _dataid = parseInt($(this).attr('value_dataid'));
+            $(this).kendoComboBox({
+                placeholder: "Chọn lái xe",
+                dataTextField: "TenLaiXe",
+                dataValueField: "Id",
+                filter: "contains",
+                autoBind: false,
+                minLength: 1,
+                dataSource: {
+                    data: laiphuxedatasoures
+                },
+                change: function (e) {
+                    //var value = this.value();
+                    //input.value = value;
+                }
+            });
+            //thay doi du lieu neu co
+            if (_dataid > 0)
+                $(this).data("kendoComboBox").value(_dataid);
+
+        });
+
+
+    }
+    function ThongTinBienSo() {
+
+        $("input[name='CBBXe']").each(function () {
+            var _dataid = parseInt($(this).attr('value_dataid'));
+            $(this).kendoComboBox({
+                placeholder: "Chọn biển số",
+                dataTextField: "BienSo",
+                dataValueField: "Id",
+                filter: "contains",
+                autoBind: false,
+                minLength: 1,
+                dataSource: {
+                    data: xevanchuyendatasoures
+                },
+                change: function (e) {
+                    //var value = this.value();
+                    //input.value = value;
+                }
+            });
+            if (_dataid > 0)
+                $(this).data("kendoComboBox").value(_dataid);
+        });
+    }
+    function XemNhatKy(Id) {
+
+        var windownhatky = $("#divNhatKy");
+        windownhatky.html("");
+
+        windownhatky.kendoWindow({
+            modal: true,
+            width: "500px",
+            height: "350px",
+            title: "Nhật ký chuyến đi",
+            content: "@(Url.Action("_NhatKyXeXuatBen", "Limousine"))" + "?Id=" + Id,
+            actions: ["Close"]
+        });
+
+        windownhatky.data('kendoWindow').center().open();
+    }
+</script>
+<div id="divNhatKy"></div>
+<style>
+    h3 {
+        text-align: center;
+    }
+
+    .RowColor {
+        background-color: #f5f5f5;
+    }
+
+    #BangDanhSach {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        #BangDanhSach thead {
+            font-weight: 700;
+            text-align: center;
+        }
+
+        #BangDanhSach, #BangDanhSach tr, #BangDanhSach tr td {
+            border: 1px solid #cccccc;
+            text-align: center;
+        }
+
+            #BangDanhSach tr {
+                height: 45px;
+            }
+
+    .khonghienthi {
+        display: none;
+    }
+</style>

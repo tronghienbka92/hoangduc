@@ -1,0 +1,96 @@
+﻿@model DatVeModel
+@using Nop.Services.NhaXes
+@{
+    Layout = null;
+
+}
+<div style="text-align:center">
+    <h2>TẠO LỆNH ĐÓN KHÁCH</h2>
+</div>
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            Mã đặt vé:
+        </td>
+        <td class="adminData">
+            <strong>@Model.Ma</strong>
+        </td>
+    </tr>
+
+    <tr>
+        <td class="adminTitle">
+            Thời gian đi:
+        </td>
+        <td class="adminData">
+            @Model.NgayDi.ToString("dd/MM/yyyy") &nbsp; @Model.TenLichTrinh
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Khách hàng:
+        </td>
+        <td class="adminData">
+            @Model.TenKhachHang ( @Model.DienThoai )
+        </td>
+    </tr>    
+    
+    <tr id="trDonTaxi">
+        <td class="adminTitle" style="vertical-align:top">
+            Địa chỉ đón taxi:
+        </td>
+        <td class="adminData">
+            @Model.DiaChiNha
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Mã taxi:
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(m => m.MaTaXi)
+        </td>
+    </tr>
+    
+    <tr>
+        <td></td>
+        <td class="adminData">
+            <input type="button" class="k-button" id="btnTaoLenh" value="Đồng ý" />            
+        </td>
+    </tr>
+</table>
+<script>
+    $(document).ready(function () {
+        setTimeout(function () {
+            $('#@Html.FieldIdFor(model => model.MaTaXi)').focus();
+        }, 500);
+        $('#btnTaoLenh').click(function () {
+            //kiem tra cac thong tin
+            var _mataxi = $('#@Html.FieldIdFor(model => model.MaTaXi)').val();
+            if (_mataxi == "")
+            {
+                alert('Bạn chưa nhập mã taxi');
+                $('#@Html.FieldIdFor(model => model.MaTaXi)').focus();
+                return;
+            }
+            $('#btnTaoLenh').attr('disabled', true);
+            var paradata = { DatVeId:@Model.Id,MaTaXi:_mataxi };
+            $.ajax({
+                cache: false,
+                type: "POST",
+                data: paradata,
+                dataType: 'json',
+                url: "@(Url.Action("_LenhTaxi", "Limousine"))",
+                success: function (data) {
+                    window.open("/NhaXeCauHinh/InPhieu?MaId=@((int)Nop.Core.Domain.NhaXes.ENNhaXeCauHinh.LENH_DON_TAXI)&Id=" + @Model.Id, "_blank");
+                    CloseWindowInLenhTaXi();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    return alert('Error while process _LenhTaxi');
+                    $('#btnTaoLenh').attr('disabled', false);
+                }
+
+            });
+        });
+    });
+</script>

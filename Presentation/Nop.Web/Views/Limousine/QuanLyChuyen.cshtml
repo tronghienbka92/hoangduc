@@ -1,0 +1,807 @@
+﻿@model QuanLyChuyenModel
+@using Nop.Core.Infrastructure
+@using Nop.Core.Domain.NhaXes;
+@using Nop.Web.Models.NhaXes
+@using Nop.Services.NhaXes
+@Html.HiddenFor(m=>m.KhuVucId)
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+}
+<style>
+     .tabchuyendiitemcss {
+        text-align: center;
+        padding: 5px;
+        width: 95px;
+        height: 100%;
+        display: inline-block;
+        border: 1px solid #c1bebe;
+        cursor: pointer;        
+    }
+
+    .tabchuyendiitemcssactive {
+        text-align: center;
+        padding: 5px;
+        width: 95px;
+        height: 100%;
+        display: inline-block;
+        border: 2px solid #099faf;
+        font-weight: bold;
+        background-color: rgb(19, 142, 154);
+    }
+</style>
+<table>
+    <tr>
+        @foreach (var item in Model.KhuVucs)
+        {
+            var _class = "tabchuyendiitemcss";
+            if (item.Value == Model.KhuVucId.ToString())
+            {
+                _class = "tabchuyendiitemcssactive";
+            }
+            <td class="@_class KhuVuc" id="khuvuc_@item.Value" khuvuc_id="@item.Value" style="width:125px">
+                @item.Text
+            </td>
+        }
+    </tr>
+    
+</table>
+<table style="width:100%">
+    <tr>
+        <td>
+            @Html.TextBoxFor(m => m.ThongTinKhachHang, new { @style="width:90%;", placeholder="Tên hoặc số điện thoại khách hàng..."})
+
+        </td>
+     
+        <td align="center" width="20%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Hành trình:
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.HanhTrinhId, Model.HanhTrinhs)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="20%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Ngày đi:
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.NgayDi)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="20%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Khung giờ:
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.KhungGioId, Model.khunggios)
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+<div id="tabChuyenDi" style="width:100%;"></div>
+<div id="tabSoDoXe" style="width:100%;"></div>
+
+<script>
+    function LoadVung(KhuVucId)
+    {
+        var _Khuvucid = $('#@Html.FieldIdFor(m=>m.KhuVucId)').val();
+        $('#khuvuc_' + _Khuvucid).removeClass("tabchuyendiitemcssactive").addClass("tabchuyendiitemcss");
+        $('#khuvuc_' + KhuVucId).removeClass("tabchuyendiitemcss").addClass("tabchuyendiitemcssactive");
+        $('#@Html.FieldIdFor(m => m.KhuVucId)').val(KhuVucId);
+        var ddlnguonve = $("#@Html.FieldIdFor(model => model.HanhTrinhId)");
+        $.ajax({
+            cache: false,
+            type: "GET",
+            url: "@(Url.Action("GetHanhTrinhByKhuVuc", "NhaXes"))",
+            data: { "KhuVucId": KhuVucId },
+        success: function (data) {
+            ddlnguonve.html('');
+            var hasnguonve = false;
+            $.each(data, function (id, option) {
+                hasnguonve = true;
+                ddlnguonve.append($('<option></option>').val(option.Id).html(option.ThongTin));
+            });
+
+            if (hasnguonve)
+            {
+                LoadChuyenDi();
+            }
+                        
+            else {
+                alert("Không có thông tin hành trình trên vung đang chọn");
+            }
+
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            alert('Failed to retrieve nguonve.');
+        }
+    });
+    }
+
+    function LoadLichTrinh() {
+        var _hanhtrinhid = $("#@Html.FieldIdFor(m=>m.HanhTrinhId)").val();
+        var _khunggioid = $("#@Html.FieldIdFor(m=>m.KhungGioId)").val();
+        $('#tabLichTrinh').html("");
+        $.ajax({
+            cache: false,
+            type: "GET",
+            url: "@(Url.Action("_TabLichTrinh", "Limousine"))?HanhTrinhId=" + _hanhtrinhid + "&KhungGioId=" + _khunggioid,
+            success: function (data) {
+                $('#tabLichTrinh').html(data);
+                LoadChuyenDi();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $('#tabLichTrinh').html("Có lỗi trong quá trình load dữ liệu lịch trình");
+            }
+        });
+    }
+    function LoadChuyenDi() {
+        var _hanhtrinhid = $("#@Html.FieldIdFor(m=>m.HanhTrinhId)").val();
+        var _lichtrinhid = 0;//$("#@Html.FieldIdFor(m=>m.LichTrinhId)").val();
+        var _ngaydi = ConvertDateTimeSystem($("#@Html.FieldIdFor(m=>m.NgayDi)").val());
+        var _khunggioid = $("#@Html.FieldIdFor(m=>m.KhungGioId)").val();
+        var _thongtinkh = $("#@Html.FieldIdFor(m=>m.ThongTinKhachHang)").val();
+        _thongtinkh = encodeURI(_thongtinkh);
+        $('#tabChuyenDi').html("");
+        $('#tabSoDoXe').html("");
+        $.ajax({
+            cache: false,
+            type: "GET",
+            url: "@(Url.Action("_TabChuyenDi", "Limousine"))?HanhTrinhId=" + _hanhtrinhid + "&LichTrinhId=" + _lichtrinhid + "&KhungGioId=" + _khunggioid + "&NgayDi=" + _ngaydi + "&ThongTinKhachHang=" + _thongtinkh,
+            success: function (data) {
+                $('#tabChuyenDi').html(data);
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $('#tabChuyenDi').html("Có lỗi trong quá trình load dữ liệu chuyến đi");
+            }
+        });
+    }
+    $(document).ready(function () {
+        
+
+        LoadChuyenDi();
+        $("#@Html.FieldIdFor(model => model.ThongTinKhachHang)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                LoadChuyenDi();
+            }
+        });
+        //load lai thong tin lich trinh thuoc hanh trinh dang chon
+        $('#@Html.FieldIdFor(model => model.HanhTrinhId)').change(function () {
+            LoadChuyenDi();
+        });
+        $('#@Html.FieldIdFor(model => model.KhungGioId)').change(function () {
+            LoadChuyenDi();
+        });
+        $("#@Html.FieldIdFor(model => model.NgayDi)").change(function () {
+            LoadChuyenDi();
+        });
+        LoadMenuSoDoGhe();
+      
+        $(".KhuVuc").each(function (e) {
+            $(this).click(function () {
+                var KhuVucId = $(this).attr('khuvuc_id');
+
+                LoadVung(KhuVucId);
+            });
+        });
+    });
+
+</script>
+
+<div id="FormWindowDatMuaVe" style="display:none">
+</div>
+<div id="FormWindowInLenhTaXi" style="display:none">
+</div>
+<div id="FormWindowTaoChuyenDi" style="display:none">
+</div>
+<div id="FormWindowChuyenVe" style="display:none">
+</div>
+<ul id="menucontextphoive_datmua">
+    <li class="k-separator"></li>
+    <li actionid="1">
+        Đặt hợp đồng
+    </li>   
+    
+</ul>
+<ul id="menucontextphoive_datmua_adv">
+    <li class="k-separator"></li>
+    <li actionid="1">
+        Đặt hợp đồng
+    </li>
+    <li class="k-separator"></li>
+    <li actionid="7">
+        Paste (Chuyển chuyến)
+    </li>
+    <li class="k-separator"></li>
+    <li actionid="71">
+        Paste (Thông tin HD)
+    </li>
+</ul>
+<ul id="menucontextphoive_nghiepvu">
+    <li actionid="6">
+        Xác nhận lại / Hủy xác nhận
+    </li>
+    <li actionid="2">
+        Sửa thông tin
+    </li>    
+    <li class="k-separator"></li>
+    <li actionid="3">
+        Copy
+    </li>
+    <li actionid="31">
+        Copy tất cả(Chuyển chuyến)
+    </li>
+    <li class="k-separator"></li>
+    <li actionid="4">
+        Hủy hợp đồng
+    </li>
+    <li actionid="41">
+        Phiếu thu
+    </li>
+</ul>
+
+<script type="text/javascript">
+
+    function ProcessActionPhoiVe(e) {
+        var actionid = $(e.item).attr('actionid');
+        var data_phoiveid = $(e.target).attr('data_phoiveid');
+        var data_sodogheid = $(e.target).attr('data_sodogheid');
+        var data_tang = $(e.target).attr('data_tang');
+        var data_trangthai = $(e.target).attr('data_trangthai');
+        var data_nguonveid = $(e.item).attr('data_nguonveid');
+
+        switch (parseInt(actionid)) {
+            case 0: //chon ghe
+                {
+
+                    break;
+                }
+            case 1: //dat ghe
+                {
+                    //neu ghe con trong thi tao trang thai dat ghe
+                    if (data_trangthai == '@((int)ENTrangThaiDatVe.CON_TRONG)') {
+                        ChonGheDatCho(data_sodogheid, true);
+                    }
+                    else if (data_trangthai == '@((int)ENTrangThaiDatVe.MOI)')
+                        OpenWindowDatMuaVe(0);
+                    break;
+                }
+            case 2: //Sua thong tin
+                {
+                    OpenWindowDatMuaVe(data_phoiveid);
+                    break;
+                }
+            case 3: //chuyen ghe
+                {
+
+                    ChuyenVeCopy(data_phoiveid);
+
+                    break;
+                }
+            case 31: //chuyen ghe
+                {
+
+                    ChuyenVeCopy(-1);
+
+                    break;
+                }
+
+            case 4: //huy ve
+                {
+                    HuyDatVe(data_phoiveid);
+                    break;
+                }
+            case 41: //phieu thu
+                {
+                    window.open("/NhaXeCauHinh/InPhieu?MaId=@((int)Nop.Core.Domain.NhaXes.ENNhaXeCauHinh.VE_MAU_IN_CUONG_VE)&Id=" + data_phoiveid, "_blank");
+                    break;
+                }
+
+            case 5: //in lenh don taxi
+                {
+                    OpenWindowInLenhTaXi(data_phoiveid);
+                    break;
+                }
+
+            case 6: //xac nhan lai ve
+                {
+                    XacNhanVe(data_phoiveid);
+                    break;
+                }
+            case 7: //chuyen ve
+                {
+                    ChuyenVePaste(data_sodogheid);
+                    break;
+                }
+            case 71: //copy thong tin
+                {
+                    ChuyenVePasteThongTin(data_sodogheid);
+                    break;
+                }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////FORM WINDOW NGHIEP VU
+    function ThemMoiChuyenDi() {
+        var _formtemp = $("#FormWindowTaoChuyenDi");
+        var _hanhtrinhid = $("#@Html.FieldIdFor(m=>m.HanhTrinhId)").val();
+        _formtemp.html('');
+        _formtemp.kendoWindow({
+            width: "500px",
+            height: "220px",
+            title: "Tạo chuyến đi",
+            content: "@(Url.Action("_ChinhSuaChuyen", "Limousine"))?HanhTrinhId=" + _hanhtrinhid,
+            modal: true,
+            actions: [
+                "Close"
+            ],
+        }).data("kendoWindow").center();
+        _formtemp.data('kendoWindow').open();
+    }
+    function CloseWindowThemMoiChuyenDi() {
+        $("#FormWindowTaoChuyenDi").data('kendoWindow').close();
+        LoadChuyenDi();
+
+    }
+    function OpenWindowInLenhTaXi(DatVeId) {
+        var _formtemp = $("#FormWindowInLenhTaXi");
+        _formtemp.html('');
+        _formtemp.kendoWindow({
+            width: "500px",
+            height: "220px",
+            title: "Tạo lệnh đón khách bằng taxi",
+            content: "@(Url.Action("_LenhTaXi", "Limousine"))?DatVeId=" + DatVeId,
+            modal: true,
+            actions: [
+                "Close"
+            ],
+        }).data("kendoWindow").center();
+        _formtemp.data('kendoWindow').open();
+    }
+    function CloseWindowInLenhTaXi() {
+        $("#FormWindowInLenhTaXi").data('kendoWindow').close();
+
+    }
+    function OpenWindowDatMuaVe(DatVeId) {
+        var formdatmuave = $("#FormWindowDatMuaVe");
+        formdatmuave.html('');
+        var _chuyendiid = $("#@Html.FieldIdFor(m=>m.ChuyenDiId)").val();
+        formdatmuave.kendoWindow({
+            width: "660px",
+            height: "480px",
+            title: "Đặt hợp đồng",
+            content: "@(Url.Action("_DatVe", "Limousine"))?DatVeId=" + DatVeId + "&ChuyenDiId=" + _chuyendiid,
+            modal: true,
+            actions: [
+                "Close"
+            ],
+        }).data("kendoWindow").center();
+        formdatmuave.data('kendoWindow').open();
+    }
+
+    function CloseWindowDatMuaVe(isReload) {
+        $("#FormWindowDatMuaVe").data('kendoWindow').close();
+        if (isReload)
+            LoadThongTinGhe();
+    }
+
+    /////XU LY THONG TIN GHE////////////////////////////////////////////////////////////////////////
+    //clear timer
+    function ClearTimerDatVe() {
+        $("[name='timerdatve']").each(function () {
+            $(this).countdown('destroy');
+        });
+    }
+    function LoadThongTinGhe() {
+        ClearTimerDatVe();
+        var _chuyendiid = $('#@Html.FieldIdFor(m=>m.ChuyenDiId)').val();
+        $.ajax({
+            cache: false,
+            type: "GET",
+            dataType: "html",
+            contentType: 'application/html;charset=utf-8',
+            url: "@(Url.Action("_TabSoDoXe", "Limousine"))?ChuyenDiId=" + _chuyendiid,
+            success: function (data) {
+                $("#tabSoDoXe").html(data);
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $("#tabSoDoXe").html("Có lỗi trong quá trình tải sơ đồ xe");
+            }
+        });
+    }
+    function LoadMenuSoDoGhe() {
+        ///tao cac menu
+        $("#menucontextphoive_datmua").kendoContextMenu({
+            orientation: "vertical",
+            target: "#tabSoDoXe",
+            filter: ".phoive_menucontext_datve",
+            animation: {
+                open: { effects: "fadeIn" },
+                duration: 300
+            },
+            select: function (e) {
+                // Do something on select
+                ProcessActionPhoiVe(e);
+            }
+        });
+        $("#menucontextphoive_datmua_adv").kendoContextMenu({
+            orientation: "vertical",
+            target: "#tabSoDoXe",
+            filter: ".phoive_menucontext_datve_adv",
+            animation: {
+                open: { effects: "fadeIn" },
+                duration: 300
+            },
+            select: function (e) {
+                // Do something on select
+                ProcessActionPhoiVe(e);
+            }
+        });
+        $("#menucontextphoive_nghiepvu").kendoContextMenu({
+            orientation: "vertical",
+            target: "#tabSoDoXe",
+            filter: ".phoive_menucontext_nghiepvu",
+            animation: {
+                open: { effects: "fadeIn" },
+                duration: 300
+            },
+            select: function (e) {
+                // Do something on select
+                ProcessActionPhoiVe(e);
+            }
+        });
+
+    }
+    function ChonGheDatCho(data_sodogheid, isDatMua) {
+
+        var _chuyendiid = $('#@Html.FieldIdFor(m=>m.ChuyenDiId)').val();
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: {
+                "ChuyenDiId": _chuyendiid,
+                "SoDoGheId": data_sodogheid
+            },
+            url: "@(Url.Action("ChonGheDatCho", "Limousine"))",
+            success: function (data) {
+
+                if (data != "OK") {
+                    alert("Vị trí đã có người đặt mua vé!");
+                }
+                else {
+                    if (isDatMua) {
+                        OpenWindowDatMuaVe(0);
+                    }
+                }
+                LoadThongTinGhe();
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                return alert('Error chon ghe');
+            }
+        });
+    }
+    function HuyGheDatChoTimeout(e) {
+        var DatVeId = $(this).attr("data-datveid");
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: {
+                "DatVeId": DatVeId
+            },
+            url: "@(Url.Action("HuyGheDatCho", "Limousine"))",
+            success: function (data) {
+                LoadThongTinGhe();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                return alert('Error huy ghe');
+            }
+        });
+    }
+    function HuyGheDatCho(DatVeId) {
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: {
+                "DatVeId": DatVeId
+            },
+            url: "@(Url.Action("HuyGheDatCho", "Limousine"))",
+            success: function (data) {
+                if (data != "OK") {
+                    alert("Không thể hủy vị trí đặt vé này, vé này đã thuộc về người khác!");
+                }
+                LoadThongTinGhe();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                return alert('Error huy ghe');
+            }
+        });
+    }
+
+    function HuyDatVe(DatVeId) {
+
+        if (confirm("Bạn có chắc chắn không ?")) {
+            var _datveidselected = "," + $("#datveidselected").val() + ",";
+            var n = _datveidselected.indexOf("," + DatVeId + ",");
+            _datveidselected = $("#datveidselected").val();
+            if (n == -1) {
+                if (_datveidselected == "") {
+                    _datveidselected = DatVeId;
+                }
+                else
+                    _datveidselected = _datveidselected + "," + DatVeId;
+            }
+            $.ajax({
+                cache: false,
+                type: "POST",
+                data: {
+                    "DatVeIds": _datveidselected
+                },
+                url: "@(Url.Action("HuyDatVe", "Limousine"))",
+                success: function (data) {
+                    if (data != "OK") {
+                        //  alert(data);
+                    }
+                    LoadThongTinGhe();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    return alert('Có lỗi trong quá trình hủy đặt vé');
+                }
+            });
+        }
+
+
+    }
+
+    function XacNhanVe(DatVeId) {
+
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: {
+                "DatVeId": DatVeId
+            },
+            url: "@(Url.Action("XacNhanVe", "Limousine"))",
+            success: function (data) {
+                if (data != "OK") {
+                    //  alert(data);
+                }
+                LoadThongTinGhe();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                return alert('Có lỗi trong quá trình hủy đặt vé');
+            }
+        });
+
+    }
+    function LoadTabChuyenVeCopy() {
+        $('#TabDatVeCopy').html("");
+        $.ajax({
+            cache: false,
+            type: "GET",
+            url: "@(Url.Action("_TabDatVeCopy", "Limousine"))",
+            success: function (data) {
+                $('#TabDatVeCopy').html(data);
+                var _datatrim = data.replace(/^\s+|\s+$/gm, '');
+                if (_datatrim != "")
+                    $('.phoive_menucontext_datve').addClass('phoive_menucontext_datve_adv').removeClass('phoive_menucontext_datve');
+                else
+                    $('.phoive_menucontext_datve_adv').addClass('phoive_menucontext_datve').removeClass('phoive_menucontext_datve_adv');
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $('#TabDatVeCopy').html("Có lỗi trong quá trình load dữ liệu dat ve copy");
+            }
+        });
+    }
+    function ChuyenVeCopy(DatVeId) {
+        var _chuyendiid = $('#@Html.FieldIdFor(m=>m.ChuyenDiId)').val();
+        var _datveidselected = DatVeId;
+        if (DatVeId > 0) {
+            _datveidselected = "," + $("#datveidselected").val() + ",";
+            var n = _datveidselected.indexOf("," + DatVeId + ",");
+            _datveidselected = $("#datveidselected").val();
+            if (n == -1) {
+                if (_datveidselected == "") {
+                    _datveidselected = DatVeId;
+                }
+                else
+                    _datveidselected = _datveidselected + "," + DatVeId;
+            }
+        }
+
+
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: {
+                "DatVeIds": _datveidselected,
+                "ChuyenDiId": _chuyendiid
+            },
+            url: "@(Url.Action("ChuyenVeCopy", "Limousine"))",
+            success: function (data) {
+                if (data == "OK") {
+                    ShowHintMouseRightClick("Bạn hãy chọn chuyến cần chuyển đến");
+                    LoadTabChuyenVeCopy();
+                }
+                else
+                    alert("Có lỗi, khách hàng không tồn tại hoặc không hợp lệ");
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                return alert('Có lỗi trong quá trình chuyển vé');
+            }
+        });
+
+    }
+
+    function ChuyenVeDelete(DatVeId) {
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: {
+                "DatVeId": DatVeId
+            },
+            url: "@(Url.Action("ChuyenVeDelete", "Limousine"))",
+            success: function (data) {
+                if (data != "OK") {
+                    alert("Có lỗi, khách hàng không tồn tại hoặc không hợp lệ");
+                }
+                else {
+                    LoadTabChuyenVeCopy();
+                }
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                return alert('Có lỗi trong quá trình xóa chuyển vé');
+            }
+        });
+
+    }
+
+    function ChuyenVePaste(data_sodogheid) {
+        var _chuyendiid = $('#@Html.FieldIdFor(m=>m.ChuyenDiId)').val();
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: {
+                "ChuyenDiId": _chuyendiid,
+                "SoDoGheId": data_sodogheid
+            },
+            url: "@(Url.Action("ChuyenVePaste", "Limousine"))",
+            success: function (data) {
+                if (data != "OK") {
+                    alert(data);
+                }
+                else {
+                    LoadThongTinGhe();
+                    $('#TabDatVeCopy').html("");
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                return alert('Có lỗi trong quá trình chuyển vé');
+            }
+        });
+
+    }
+    function ChuyenVePasteThongTin(data_sodogheid) {
+        var _chuyendiid = $('#@Html.FieldIdFor(m=>m.ChuyenDiId)').val();
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: {
+                "ChuyenDiId": _chuyendiid,
+                "SoDoGheId": data_sodogheid
+            },
+            url: "@(Url.Action("ChuyenVePasteThongTin", "Limousine"))",
+            success: function (data) {
+                if (data != "OK") {
+                    alert(data);
+                }
+                else {
+                    LoadThongTinGhe();
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                return alert('Có lỗi trong quá trình chuyển vé');
+            }
+        });
+
+    }
+    function ChonGhe(DatVeId) {
+        var _datveidselected = "," + $("#datveidselected").val() + ",";
+        var n = _datveidselected.indexOf("," + DatVeId + ",");
+        _datveidselected = $("#datveidselected").val();
+        //ko co
+        if (n == -1) {
+            if (_datveidselected == "") {
+                _datveidselected = DatVeId;
+            }
+            else
+                _datveidselected = _datveidselected + "," + DatVeId;
+            $("#box_ghe_dat_ve_chon_" + DatVeId).show();
+        }
+        else {
+            //da ton tai thi bo chon
+            var arrdatveid = _datveidselected.split(',');
+            _datveidselected = "";
+            for (var i = 0; i < arrdatveid.length; i++) {
+                if (arrdatveid[i] != DatVeId) {
+                    if (_datveidselected == "") {
+                        _datveidselected = arrdatveid[i];
+                    }
+                    else
+                        _datveidselected = _datveidselected + "," + arrdatveid[i];
+                }
+            }
+            $("#box_ghe_dat_ve_chon_" + DatVeId).hide();
+        }
+        $("#datveidselected").val(_datveidselected);
+    }
+    function CloseWindowChuyenVe() {
+        $("#FormWindowChuyenVe").data('kendoWindow').close();
+        LoadThongTinGhe();
+    }
+    function SetCenterWindowChuyenVe() {
+        $("#FormWindowChuyenVe").data('kendoWindow').center();
+    }
+    function ChonGheChuyenVe(data_sodogheid) {
+        var datveid = $('#@Html.FieldIdFor(m=>m.DatVeIdChuyenVe)').val();
+        var chuyendiid = $('#@Html.FieldIdFor(m=>m.ChuyenDiIdChuyenVe)').val();
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: {
+                "DatVeId": datveid,
+                "ChuyenDiId": chuyendiid,
+                "SoDoGheId": data_sodogheid
+            },
+            url: "@(Url.Action("ChuyenVe", "Limousine"))",
+            success: function (data) {
+                if (data != "OK") {
+                    alert("Vị trí đã có người đặt hoặc chuyến đi không hợp lệ!");
+                }
+                else {
+                    alert("Chuyển chuyến thành công!");
+                    CloseWindowChuyenVe();
+                }
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                return alert('Error chon ghe');
+            }
+        });
+    }
+    function SetSoLuongKhachDatVe(chuyendiid, sl, soghe) {
+        if ($("#SoKhach_" + chuyendiid))
+            $("#SoKhach_" + chuyendiid).html(sl);
+        if ($("#SoKhach_Progress_" + chuyendiid)) {
+            var _ctltemp = $("#SoKhach_Progress_" + chuyendiid);
+            _ctltemp.css('width', parseFloat(sl * 100 / soghe) + "%");
+            var bg = _ctltemp.css('background-color');
+            var a = bg.slice(4).split(',');
+            var _alpha = parseFloat(sl) / soghe;
+            var newBg = 'rgba' + a[0] + ',' + a[1] + ',' + a[2] + ',' + _alpha + ')';
+            _ctltemp.css('background-color', newBg);
+
+        }
+
+
+    }
+</script>
+
+<div id="formwindowhuyve" style="display:none">
+</div>

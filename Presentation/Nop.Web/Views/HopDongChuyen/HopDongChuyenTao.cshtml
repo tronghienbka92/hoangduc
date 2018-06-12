@@ -1,0 +1,21 @@
+﻿@model HopDongChuyenModel
+@using Nop.Web.Models.NhaXes
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+    //page title
+    ViewBag.Title ="Tạo hợp đồng trọn gói";
+}
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "PhieuGuiHang-form" }))
+{
+    <div class="section-header">
+        <div class="title">
+            <img src="@Url.Content("~/Content/chonve/nxmenu/hanhtrinhlichtrinh.png")" alt="" />
+            Tạo hợp đồng chuyến @Html.ActionLink("(Quay về danh sách hợp đồng chuyến)", "ListHopDongChuyen")
+        </div>
+        <div class="options">
+            <input type="submit" name="save" class="k-button" value="@T("Admin.Common.Save")" />
+            <input type="submit" name="save-continue" class="k-button" value="@T("Admin.Common.SaveContinue")" />
+        </div>
+    </div>
+    @Html.Partial("_HopDongChuyenChinhSua", Model)
+}

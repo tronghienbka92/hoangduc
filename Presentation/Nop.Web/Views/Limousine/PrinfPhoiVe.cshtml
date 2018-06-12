@@ -1,0 +1,45 @@
+﻿@model Nop.Web.Models.NhaXes.QuanLyChuyenModel
+@{
+    Layout = null;
+    Model.sodoghe.PhanLoai = Nop.Core.Domain.NhaXes.ENPhanLoaiPhoiVe.IN_PHOI_VE;
+}
+<table style="width:100%" cellpadding="5" cellspacing="5">
+    <tr>
+        <td colspan="4">
+            <h2>GIẤY ĐI ĐƯỜNG</h2>
+        </td>
+    </tr>
+    <tr>
+        <td><strong>Hành trình:</strong> @Model.chuyendihientai.TenHanhTrinh</td>
+        <td><strong>Thời gian chạy:</strong> @Model.chuyendihientai.NgayDiThuc.ToString("dd/MM/yyyy HH:mm")</td>
+        <td><strong>Biển số:</strong> @Model.chuyendihientai.BienSoXe</td>
+        <td><strong>Lái xe:</strong> @Model.chuyendihientai.TenLaiXe</td>
+    </tr>    
+</table>
+
+@Html.Partial("_GetInfoSoDoGheXeToDatVe", Model)
+
+<table style="width:100%;margin-top:50px;margin-bottom: 45px;">
+    <tr style="height: 40px;">
+        <td style="text-align:center;font-weight:bold;"><span>ĐIỀU HÀNH</span></td>
+        <td style="text-align:center;font-weight:bold;"><span>LÁI XE</span></td>
+        <td style="text-align:center;font-weight:bold;"><span>THU NGÂN</span></td>
+    </tr>
+    <tr>
+        <td style="text-align:center;font-style:italic;"><span>(Ký và ghi rõ họ tên)</span></td>
+        <td style="text-align:center;font-style:italic;"><span>(Ký và ghi rõ họ tên)</span></td>
+        <td style="text-align:center;font-style:italic;"><span>(Ký và ghi rõ họ tên)</span></td>
+    </tr>
+</table>
+
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script>
+    var url= window.location.href;
+    var index=url.indexOf("Limousine/PrinfPhoiVe");
+    if(index != -1)
+    {
+        $("#InfoSotienSoKhach").css({ "bottom": "425px" });
+        $("#InfoSotienSoKhach").css({ "right": "10px" });
+        $("#InfoSotienSoKhach table tr td").css({ "font-size": "20px" });
+    }
+</script>

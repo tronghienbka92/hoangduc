@@ -1,0 +1,152 @@
+﻿@model DoanhThuNhanVienLuotModel
+@using Nop.Web.Models.NhaXeBaoCao
+@using Nop.Core.Domain.NhaXes
+@using Nop.Core.Infrastructure
+@{
+
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+
+    var titlepage = "Tổng hợp lượt cho nhân viên";
+}
+<div class="section-header">
+    <div class="title">
+        <img src="@Url.Content("~/Content/chonve/nxmenu/baocaodoanhthu.png")" alt="" />
+        @titlepage
+    </div>
+</div>
+<table style="width:100%">
+    <tr>
+        <td align="center" width="15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        @T("chonve.menu.nhaxe.baocao.ListLoai"):
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.Loai1Id, Model.ListLoai1)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="15%" id="tabThang">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        @T("common.month"):
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.ThangId, Model.ListMonth)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="15%" id="tabNam">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        @T("common.year"):
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.NamId, Model.ListYear)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="15%" id="tabNam">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Tìm nhân viên:
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.SearchName)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="text-align:right">
+            <input type="button" id="btnSearch" class="k-button" value="@T("Admin.Common.Search")" />
+        </td>
+    </tr>
+</table>
+<script>
+    $(document).ready(function () {
+        $("#tabQuy").hide();
+        LoadBangDoanhThuNhanVienLuot();
+
+        $('#btnSearch').click(function () {
+            //search
+            LoadBangDoanhThuNhanVienLuot();
+        });
+        $("#@Html.FieldIdFor(model => model.Loai1Id)").change(function () {
+            switch ($(this[this.selectedIndex]).val()) {
+                case "@((int)ENBaoCaoChuKyThoiGian.HangThang)":
+                    {
+                        $("#tabThang").hide();
+                        $("#tabNam").show();
+                        break;
+                    }
+                case "@((int)ENBaoCaoChuKyThoiGian.HangNam)":
+                    {
+                        $("#tabThang").hide();
+                        $("#tabNam").hide();
+                        break;
+                    }
+                case "@((int)ENBaoCaoChuKyThoiGian.HangNgay)":
+                    {
+                        $("#tabThang").show();
+                        $("#tabNam").show();
+                        break;
+                    }
+            }
+            $("#btnSearch").click();
+        });
+        $("#@Html.FieldIdFor(model => model.NamId)").change(function () {
+            $("#btnSearch").click();
+        });
+        $("#@Html.FieldIdFor(model => model.ThangId)").change(function () {
+            $("#btnSearch").click();
+        });
+    });
+    function LoadBangDoanhThuNhanVienLuot() {
+        var ThangId = $('#@Html.FieldIdFor(m => m.ThangId)').val();
+        var NamId = $('#@Html.FieldIdFor(m => m.NamId)').val();
+        var Loai1Id = $('#@Html.FieldIdFor(m => m.Loai1Id)').val();
+        var SearchName = $('#@Html.FieldIdFor(m => m.SearchName)').val();
+
+        $.ajax({
+            cache: false,
+            type: "GET",
+            dataType: "html",
+            contentType: 'application/html;charset=utf-8',
+            data: { "ThangId": ThangId, "NamId": NamId, "Loai1Id": Loai1Id, "SearchName": SearchName },
+            url: "@(Url.Action("_GetDoanhThuNhanVienLuot", "NhaXeBaoCao"))",
+            success: function (data) {
+
+                if (data != null) {
+                    $("#BangDoanhThuLuot").html(data);
+                }
+                else {
+                    $("#BangDoanhThuLuot").html("<p>Không có quyền báo vé</p>")
+                }
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert('Chưa đủ thông tin');
+            }
+        });
+    }
+</script>
+<div id="BangDoanhThuLuot" style="overflow-x: scroll; overflow-y: scroll;height:500px">
+</div>
+
+
+
+
+<style>
+    .footerTemplateBaoCao {
+        text-align: right;
+        font-size: 16px;
+        color: #1a3410;
+    }
+</style>

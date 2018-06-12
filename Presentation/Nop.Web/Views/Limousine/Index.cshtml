@@ -1,0 +1,67 @@
+﻿@model LimousineIndexModel
+@using Nop.Services.NhaXes
+@{
+    var hopdongchuyenlastday = (decimal)ViewBag.hopdongchuyenlastday;
+    var hopdongchuyentoday=(decimal)ViewBag.hopdongchuyentoday;
+    var hopdongchuyentrongthang = (decimal)ViewBag.hopdongchuyentrongthang;
+}
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+
+}
+
+<div>
+    <h2 style="text-align:right;width:100%">@DateTime.Now.ToNgayThang()</h2>
+    <div class="demo-section k-content hom_qua">
+        <h3>HÔM QUA</h3>
+        <p>Số lượng khách: <strong>@Model.ngayhomqua.SoLuongDatVe</strong></p>
+        <p>Số lượng chuyến đi: <strong>@Model.ngayhomqua.SoLuongChuyen</strong></p>
+        <hr />
+        <p>Doanh thu chuyến: <strong>@hopdongchuyenlastday.ToString("###,###,##0") đ</strong></p>
+        <p>Doanh thu: <strong>@Model.ngayhomqua.DoanhThuDatVe.ToString("###,###,##0") đ</strong></p>
+    </div>
+    <div class="demo-section k-content hom_nay">
+        <h3>HÔM NAY</h3>
+        <p>Số lượng khách: <strong>@Model.ngayhientai.SoLuongDatVe</strong></p>
+        <p>Số lượng chuyến đi: <strong>@Model.ngayhientai.SoLuongChuyen</strong></p>
+        <hr />
+        <p>Doanh thu chuyến: <strong>@hopdongchuyentoday.ToString("###,###,##0") đ</strong></p>
+        <p>Doanh thu: <strong>@Model.ngayhientai.DoanhThuDatVe.ToString("###,###,##0") đ</strong></p>
+    </div>
+    <div class="demo-section k-content trong_thang">
+        <h3>TRONG THÁNG</h3>
+        <p>Số lượng khách: <strong>@Model.trongthang.SoLuongDatVe</strong></p>
+        <p>Số lượng chuyến đi: <strong>@Model.trongthang.SoLuongChuyen</strong></p>
+        <hr />
+        <p>Doanh thu chuyến: <strong>@hopdongchuyentrongthang.ToString("###,###,##0") đ</strong></p>
+        <p>Doanh thu: <strong>@Model.trongthang.DoanhThuDatVe.ToString("###,###,##0") đ</strong></p>
+    </div>
+</div>
+<style>
+    .demo-section {
+        margin:  25px 35px 25px  35px;
+        padding: 3em;
+        border: 1px solid rgba(20,53,80,0.14);
+        float:left;
+    }
+
+        .demo-section.k-content {
+            box-shadow: 0 1px 2px 1px rgba(0,0,0,.08), 0 3px 6px rgba(0,0,0,.08);
+        }
+
+        .demo-section:not(.wide) {
+            max-width: 400px;
+        }
+        .hom_nay
+        {
+            background-color:#e3faa1
+        }
+        .hom_qua
+        {
+            background-color:#faddc9
+        }
+        .trong_thang
+        {
+            background-color:#a1e9f6
+        }
+</style>

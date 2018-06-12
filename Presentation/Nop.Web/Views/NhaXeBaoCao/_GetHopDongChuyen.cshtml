@@ -1,0 +1,89 @@
+﻿@model TKLuotKhachHangModel
+@using Nop.Web.Models.NhaXeBaoCao
+@{
+    var i = 0;
+}
+
+<table class="BangGiaVe">
+    <thead>
+        <tr>
+            <td>STT</td>
+            <td>Số hợp đồng</td>
+            <td> Ngày đi</td>
+            <td> Biến số xe</td>
+           
+            <td>Tên lái xe</td>
+            <td> Hành trình</td>
+            <td>Km xuất</td>
+            <td> Giá trị HD</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.hopdongchuyens)
+        {
+            i++;
+            <tr>
+                <td>
+                    @i
+                </td>
+                <td>
+                    @item.SoHopDong
+                </td>
+                <td>
+                    @item.ThoiGianDonKhach.ToString("dd/MM/yyyy")
+                </td>
+                <td>
+                    @item.BienSoXe
+                </td>
+                <td>
+                    @item.TenLaiXe
+                </td>
+                <td>
+                    @item.LoTrinh
+                </td>
+                <td>
+                    @item.KmXuat
+                </td>
+                <td>
+                    @item.GiaTri.ToString("###,###")
+                </td>
+            </tr>
+        }
+        <tr>
+            <td class="Tong" colspan="2">
+                Tổng:
+            </td>
+            <td class="Tong" colspan="5">
+                
+            </td>
+            <td class="Tong" >
+               Thành tiền: @Model.hopdongchuyens.Sum(c=>c.GiaTri).ToString("###,###")
+            </td>
+        </tr>
+    </tbody>
+    
+</table>
+
+<style>
+     .BangGiaVe {
+                border-collapse: collapse;                
+               width:100%;
+            }
+       .BangGiaVe, .BangGiaVe tr, .BangGiaVe tr td {
+            border: 1px solid #928d8d;
+        }
+       .BangGiaVe tr
+       {
+           height:30px;
+       }
+       .BangGiaVe thead tr td
+       {
+           font-weight: bold;
+    font-size: 15px;
+       }
+       .Tong
+       {
+           font-size:15px;
+           font-weight: bold;
+       }
+</style>

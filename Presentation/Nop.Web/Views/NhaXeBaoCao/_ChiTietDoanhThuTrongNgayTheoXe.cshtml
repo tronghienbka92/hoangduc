@@ -1,0 +1,120 @@
+﻿@model ListDoanhThuChiTietModel
+@using Nop.Web.Models.NhaXeBaoCao
+
+<table class="BangGiaVe">
+    <thead>
+        <tr>
+            <td> Biển số </td>
+            <td>Bắt đầu</td>
+            <td> Kết thúc</td>
+            <td>Số lượt</td>
+            <td>Số khách</td>
+            <td> Số tiền</td>
+            <td> Điểm đầu</td>
+            <td> Điểm cuối</td>
+            <td>Tên lái</td>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int countSoLuot = 0;
+            int countSoKhach = 0;
+            decimal countSoTien = 0;
+        }
+        @foreach (var item in Model.ListXe)
+        {
+            foreach (var m in item.doanhthus)
+            {
+                <tr>
+                    <td>
+                        @m.BienSoXe
+                    </td>
+                    <td>
+                        @m.BatDau
+                    </td>
+                    <td>
+                        @m.KetThuc
+                    </td>
+                    <td>
+                        @m.SoLuot
+                    </td>
+                    <td>
+                        @m.SoKhach
+                    </td>
+                    <td>
+                        @m.SoTien.ToString("###,###")
+                    </td>
+                    <td>
+                        @m.DiemDau
+                    </td>
+                    <td>
+                        @m.DiemCuoi
+                    </td>
+                    <td>
+                        @m.TenLai
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td style="color:red">
+                  Tổng
+                </td>
+                <td>
+                  
+                </td>
+                <td>
+                    
+                </td>
+                <td style="color:red"> @item.TongLuot</td>
+                <td style="color:red">@item.TongKhach</td>
+                <td style="color:red">@item.TongTien.ToString("###,###")</td>
+                <td>
+                  
+                </td>
+                <td>
+                   
+                </td>
+                <td>
+                    
+                </td>
+            </tr>
+            countSoLuot += item.TongLuot;
+            countSoKhach += item.TongKhach;
+            countSoTien += item.TongTien;
+        }
+        <tr>
+            <td style="color:red">
+                Tổng cộng
+            </td>
+            <td></td>
+            <td></td>
+            <td style="color:red"> @countSoLuot</td>
+            <td style="color:red">@countSoKhach</td>
+            <td style="color:red">@countSoTien.ToString("###,###")</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </tbody>
+    
+</table>
+
+<style>
+     .BangGiaVe {
+                border-collapse: collapse;                
+               width:100%;
+            }
+       .BangGiaVe, .BangGiaVe tr, .BangGiaVe tr td {
+            border: 1px solid #928d8d;
+        }
+       .BangGiaVe tr
+       {
+           height:30px;
+       }
+       .BangGiaVe thead tr td
+       {
+           font-weight: bold;
+    font-size: 16px;
+       }
+      
+</style>

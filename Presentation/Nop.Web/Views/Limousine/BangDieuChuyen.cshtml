@@ -1,0 +1,250 @@
+﻿@model DanhSachChuyenDiModel
+@using Nop.Core.Infrastructure
+@using Nop.Core.Domain.NhaXes;
+@using Nop.Web.Models.NhaXes
+@using Nop.Services.NhaXes
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+}
+<style>
+    .tabchuyendiitemcss {
+        text-align: center;
+        padding: 5px;
+        width: 95px;
+        height: 100%;
+        display: inline-block;
+        border: 1px solid #c1bebe;
+        cursor: pointer;
+    }
+
+    .tabchuyendiitemcssactive {
+        text-align: center;
+        padding: 5px;
+        width: 95px;
+        height: 100%;
+        display: inline-block;
+        border: 2px solid #099faf;
+        font-weight: bold;
+        background-color: rgb(19, 142, 154);
+    }
+</style>
+
+<table style="width:100%">
+    <tr>
+        <td width="25%">
+            <table>
+                <tr>
+                    @foreach (var item in Model.KhuVucs)
+                    {
+                        var _class = "tabchuyendiitemcss";
+                        if (item.Value == Model.KhuVucId.ToString())
+                        {
+                            _class = "tabchuyendiitemcssactive";
+                        }
+                        <td class="@_class KhuVuc" id="khuvuc_@item.Value" khuvuc_id="@item.Value" style="width:125px">
+                            @item.Text
+                        </td>
+                    }
+                </tr>
+
+            </table>
+            @Html.HiddenFor(m => m.KhuVucId)
+        </td>
+        <td align="center" width="15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Ngày đi:
+                    </td>
+                    <td class="adminData">
+                        @Html.EditorFor(model => model.NgayDi)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="20%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Khung giờ:
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.KhungGioId, Model.khunggios)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <input type="button" id="btnSearch" class="k-button" value="Tìm kiếm" /> 
+        </td>
+        <td> 
+            @if(!Model.IsQuyenTaoChuyen)
+            {
+                <text>
+            Bảng điều chuyến sẽ tự động tải lại trong <span id="lbTimeRefresh" style="color:red;font-weight:bold">[Đang tải dữ liệu...]</span> (s)
+            <script>
+                
+                $(document).ready(function () {
+                    setInterval(function(){ myTimerRefresh() }, 1000);
+                });
+                function myTimerRefresh() {
+                    
+                    _countTimer=_countTimer-1;
+                    if(_countTimer>0)
+                        $("#lbTimeRefresh").html(_countTimer);
+                    else 
+                    {
+                        if(_countTimer==0)
+                        {
+                            $("#lbTimeRefresh").html("[Đang tải dữ liệu...]");
+                            LoadChuyenDi();
+                        }
+                    }
+
+                }
+            </script>
+            </text>
+                }
+                
+</td>
+    </tr>
+</table>
+
+<div id="tabChuyenDi"></div>
+<div id="FormWindowTaoChuyenDi" style="display:none">
+</div>
+<script>
+    var _countTimer=-1000;
+    var laiphuxedatasoures = [
+                       @for (int i = 0; i < Model.AllLaiXePhuXes.Count; i++)
+    {
+        var _item = Model.AllLaiXePhuXes[i];
+        <text>
+    {
+        Id: @(_item.Id),
+        TenLaiXe: "@(Html.Raw(HttpUtility.JavaScriptStringEncode(_item.ThongTin)))"
+    }
+    </text>
+        if (i != Model.AllLaiXePhuXes.Count - 1)
+        {
+            <text>,</text>
+        }
+    }
+    ];
+    //tao thong tin xe
+    var xevanchuyendatasoures = [
+           @for (int i = 0; i < Model.AllXeInfo.Count; i++)
+    {
+        var _item = Model.AllXeInfo[i];
+        <text>
+    {
+        Id: @(_item.Id),
+        BienSo: "@(Html.Raw(HttpUtility.JavaScriptStringEncode(_item.BienSo)))"
+    }
+    </text>
+        if (i != Model.AllXeInfo.Count - 1)
+        {
+            <text>,</text>
+        }
+    }
+    ];
+    function HuyChuyenDiFast(id)
+    {        
+        var dataadd = { ChuyenDiId: id};
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: dataadd,
+            url: "@(Url.Action("HuyChuyenDi", "Limousine"))",
+            success: function (data) {
+                if (data == "OK")
+                    LoadChuyenDi();
+                else
+                    alert("Không thể hủy chuyến đi, chuyến đi đang có người đặt hoặc ở trạng thái không thể hủy");
+            },
+        error: function (xhr, ajaxOptions, thrownError) {
+            return alert('Có lỗi trong quá trình hủy chuyến đi');
+        }
+    });
+    }
+    function ThemMoiChuyenDi(LichTrinhId,HanhTrinhId) {
+        var _formtemp = $("#FormWindowTaoChuyenDi");
+        _formtemp.html('');
+        _formtemp.kendoWindow({
+            width: "500px",
+            height: "220px",
+            title: "Tạo chuyến đi",
+            content: "@(Url.Action("_ChinhSuaChuyen", "Limousine"))?LichTrinhId="+LichTrinhId +"&HanhTrinhId="+HanhTrinhId,
+            modal: true,
+        actions: [
+            "Close"
+        ],
+        }).data("kendoWindow").center();
+    _formtemp.data('kendoWindow').open();
+    }
+    function CloseWindowThemMoiChuyenDi() {
+        $("#FormWindowTaoChuyenDi").data('kendoWindow').close();
+        LoadChuyenDi();
+
+    }
+    function LoadChuyenDi() {
+        var _ngaydi = ConvertDateTimeSystem($("#@Html.FieldIdFor(m=>m.NgayDi)").val());
+        var _khunggioid = $("#@Html.FieldIdFor(m=>m.KhungGioId)").val();
+
+        var additionalData = {
+            KhungGioId:_khunggioid,
+            NgayDi: _ngaydi,
+            KhuVucId:$("#@Html.FieldIdFor(m=>m.KhuVucId)").val()
+        };
+        $.ajax({
+            cache: false,
+            type: "GET",
+            dataType: "html",
+            contentType: 'application/html;charset=utf-8',
+            data: additionalData,
+            url: "@(Url.Action("_BangDieuChuyen", "Limousine"))",
+            success: function (data) {
+                _countTimer=15;
+                if (data != null)
+                {
+                    $("#tabChuyenDi").html(data);
+                }
+                else
+                {
+                    $("#tabChuyenDi").html("<p>Không có quyền</p>")
+                }
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert('Chưa đủ thông tin');
+            }
+        });
+    }
+    $(document).ready(function () {
+        LoadChuyenDi();
+        $('#@Html.FieldIdFor(model => model.KhungGioId)').change(function () {
+            LoadChuyenDi();
+        });
+        $("#@Html.FieldIdFor(model => model.NgayDi)").change(function () {
+            LoadChuyenDi();
+        });
+        $('#btnSearch').click(function () {
+            LoadChuyenDi();
+            return false;
+        });
+        $(".KhuVuc").each(function (e) {
+            $(this).click(function () {
+                var KhuVucId = $(this).attr('khuvuc_id');
+                var KhuVucIdOld=$("#@Html.FieldIdFor(m=>m.KhuVucId)").val();
+                $('#khuvuc_' + KhuVucIdOld).removeClass("tabchuyendiitemcssactive").addClass("tabchuyendiitemcss");
+                $('#khuvuc_' + KhuVucId).removeClass("tabchuyendiitemcss").addClass("tabchuyendiitemcssactive");
+                $("#@Html.FieldIdFor(m=>m.KhuVucId)").val(KhuVucId);
+                LoadChuyenDi();
+            });
+        });
+    });
+
+</script>
+
+
+

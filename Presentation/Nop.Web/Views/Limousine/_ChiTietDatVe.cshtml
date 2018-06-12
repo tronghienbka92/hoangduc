@@ -1,0 +1,121 @@
+﻿@model DatVeModel
+@{
+    var _isDonTaxi = "Không";
+    if (Model.isDonTaxi)
+    {
+        _isDonTaxi = "Có";
+    }        
+        
+}
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            Hành trình:
+        </td>
+        <td class="adminData">
+            <strong>@Model.TenHanhTrinh</strong>
+        </td>
+    </tr>
+
+    <tr>
+        <td class="adminTitle">
+            Ngày đi:
+        </td>
+        <td class="adminData">
+            @Model.NgayDi.ToString("dd/MM/yyyy")
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Khung giờ đi:
+        </td>
+        <td class="adminData">
+            @Model.TenLichTrinh
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Mã chuyến đi:
+        </td>
+        <td class="adminData">
+            @Model.TenChuyenDi
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Ký hiệu ghế:
+        </td>
+        <td class="adminData">
+            @Model.sodoghekyhieu
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Điện thoại:
+        </td>
+        <td class="adminData">
+            @Model.DienThoai
+
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Tên khách hàng:
+        </td>
+        <td class="adminData">
+            @Model.TenKhachHang
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">Đón taxi ?</td>
+        <td class="adminData">
+           <strong>@_isDonTaxi</strong>
+        </td>
+    </tr>
+    @if (Model.isDonTaxi)
+    {
+        <tr id="trDonTaxi">
+            <td class="adminTitle" style="vertical-align:top">
+                Địa chỉ đón taxi:
+            </td>
+            <td class="adminData">
+                @Model.DiaChiNha
+            </td>
+        </tr>
+    <tr>
+        <td class="adminTitle" style="vertical-align:top">
+            Mã taxi:
+        </td>
+        <td class="adminData">
+            @Model.MaTaXi
+        </td>
+    </tr>
+    }   
+    <tr>
+        <td class="adminTitle">
+            Điểm chờ:
+        </td>
+        <td class="adminData">
+            @Model.TenDiemDon
+        </td>
+    </tr> 
+    <tr>
+        <td class="adminTitle">
+            Ghi chú:
+        </td>
+        <td class="adminData">
+            @Model.GhiChu
+        </td>
+    </tr>  
+    <tr>
+        <td colspan="2">
+            <hr />
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2" style="font-style:italic">
+            (*)Người tạo: <strong>@Model.TenNguoiTao</strong> - Ngày tạo: <strong>@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</strong>
+        </td>
+    </tr> 
+</table>
+

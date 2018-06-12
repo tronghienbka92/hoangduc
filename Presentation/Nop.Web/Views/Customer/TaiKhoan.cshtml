@@ -1,0 +1,84 @@
+﻿@model ChangePasswordModel
+@using Nop.Web.Models.Customer;
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+    //title
+    ViewBag.Title = "Thông tin tài khoản";
+    var validationSummary = Html.ValidationSummary(true);
+}
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="section-header">
+        <div class="title">
+            <img src="@Url.Content("~/Content/chonve/nxmenu/nhaxecustomer.png")" alt="" height="32px" width="32px" />
+            @ViewBag.Title
+        </div>       
+    </div>
+    if (!String.IsNullOrEmpty(Model.Result))
+    {
+        <div style="color:#1b5503">
+            <h2>@Model.Result</h2>
+        </div>
+    }
+    if (!MvcHtmlString.IsNullOrEmpty(validationSummary))
+    {
+        <div style="color:#e4602e"><h2>@validationSummary</h2></div>
+    }
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle">
+                Email:
+            </td>
+            <td class="adminData">
+                @Model.Email
+            </td>
+        </tr>  
+        <tr>
+            <td class="adminTitle">
+                Họ và tên:
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.Fullname)
+                @Html.ValidationMessageFor(model => model.Fullname)
+            </td>
+        </tr>         
+        <tr>
+            <td class="adminTitle">
+                Mật khẩu cũ:
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.OldPassword)
+                @Html.RequiredHint()
+                @Html.ValidationMessageFor(model => model.OldPassword)
+            </td>
+        </tr>     
+        <tr>
+            <td class="adminTitle">
+                Mật khẩu mới:
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.NewPassword)
+                @Html.RequiredHint()
+                @Html.ValidationMessageFor(model => model.NewPassword)
+            </td>
+        </tr>   
+        <tr>
+            <td class="adminTitle">
+                Gõ lại mật khẩu mới:
+            </td>
+            <td class="adminData">                
+                @Html.EditorFor(model => model.ConfirmNewPassword)
+                @Html.RequiredHint()
+                @Html.ValidationMessageFor(model => model.ConfirmNewPassword)
+            </td>
+        </tr>     
+        <tr>
+            <td>
+            </td>
+            <td>
+                <input type="submit" name="save" class="k-button" style="width:120px" value="@T("Admin.Common.Save") " />   
+            </td>
+        </tr>
+    </table>    
+}

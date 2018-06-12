@@ -1,0 +1,106 @@
+﻿@model QuanLyChuyenModel
+@using Nop.Services.NhaXes
+@Html.HiddenFor(m => m.LichTrinhId)
+
+<div style="position:relative">
+    <div class="tablichtrinhcss">
+        @foreach (var item in Model.LichTrinhs)
+        {
+            var _class = "tablichtrinhitemcss";
+            if (item.Id == Model.LichTrinhId)
+            {
+                _class = "tablichtrinhitemcssactive";
+            }
+            <div class="@_class tablichtrinhitemcssaction" id="lichtrinhdiv_@item.Id" lichtrinh_id="@item.Id">
+                @item.toText(false)
+            </div>
+        }
+    </div>
+    <div class="tablichtrinhcssstep">
+        <a href="javascript:GoMenuLichTrinh(true);"><img src="/Content/chonve/nhaxe/arrow_left.png"></a><a href="javascript:GoMenuLichTrinh(false);"><img src="/Content/chonve/nhaxe/arrow_right.png"></a>
+    </div>
+</div>
+
+
+<script>
+    function GoMenuLichTrinh(isLeft) {
+        var position = $('.tablichtrinhcss').position();
+        var _width = $(".tablichtrinhitemcss").width();
+        var _step = position.left + 2*_width + 5;
+        if (!isLeft)
+            _step = position.left - 2*_width - 5;
+
+        if (isLeft && _step > 0)
+            return;
+        
+        $('.tablichtrinhcss').animate({
+            'left': '' + _step + 'px'
+        });
+    }
+    function SwapLichtrinh(lichtrinhid) {
+        var _lichtrinhidold = $('#@Html.FieldIdFor(m=>m.LichTrinhId)').val();
+        $('#lichtrinhdiv_' + _lichtrinhidold).removeClass("tablichtrinhitemcssactive").addClass("tablichtrinhitemcss");
+        $('#lichtrinhdiv_' + lichtrinhid).removeClass("tablichtrinhitemcss").addClass("tablichtrinhitemcssactive");
+        $('#@Html.FieldIdFor(m=>m.LichTrinhId)').val(lichtrinhid);
+        LoadChuyenDi();
+    }
+    function GoToLichTrinhHienTai()
+    {
+        var position = $('.tablichtrinhcss').position();
+        var _width = $(".tablichtrinhitemcss").width();
+        var _step = position.left - _width - 5;
+        _step = _step*@Model.LichTrinhStepId;
+        $('.tablichtrinhcss').animate({
+            'left': '' + _step + 'px'
+        });
+    }
+    $(document).ready(function () {
+        $(".tablichtrinhitemcssaction").each(function(e)
+        {
+            $(this).click(function () {
+                var _lichtrinhid = $(this).attr('lichtrinh_id');
+                SwapLichtrinh(_lichtrinhid);
+            });
+        });
+        GoToLichTrinhHienTai();
+    });
+</script>
+<style>
+    .tablichtrinhcss {
+        position: absolute;
+        width: auto;
+        height: 30px;
+        top: 0;
+        left: 0px;
+        overflow: hidden;
+    }
+
+    .tablichtrinhcssstep {
+        position: absolute;
+        width: 70px;
+        height: 30px;
+        top: 0;
+        right: 0;
+        background-color: rgba(255, 255, 255, 0.90);
+    }
+
+    .tablichtrinhitemcss {
+        text-align: center;
+        padding: 5px;
+        width: 120px;
+        height: 30px;
+        display: inline-block;
+        border: 1px solid #c1bebe;
+        cursor: pointer;
+    }
+
+    .tablichtrinhitemcssactive {
+        text-align: center;
+        padding: 5px;
+        width: 120px;
+        height: 30px;
+        display: inline-block;
+        border: 2px solid #ff6a00;
+        font-weight: bold;
+    }
+</style>

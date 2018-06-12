@@ -1,0 +1,365 @@
+﻿@model QuanLyDatVeModel
+@using Nop.Services.NhaXes
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+    ViewBag.Title = "Danh sách khách hàng đặt HD mới nhất trong ngày";
+}
+
+<div class="section-header">
+    <div class="title">
+        <img src="@Url.Content("~/Content/chonve/nxmenu/phoive.png")" alt="" />
+        @ViewBag.Title
+    </div>
+    <div class="options">
+
+    </div>
+</div>
+<table style="width:100%;margin-bottom:15px">
+    <tr>
+        <td style="width:25%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Thông tin đặt vé:
+                    </td>
+                    <td class="adminContent">
+                        @Html.TextBoxFor(model => model.ThongTinDatVe, new { placeholder = "Điện thoại hoặc tên khách hàng...", style = "width:280px" })
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="width:10%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Ngày đi:
+                    </td>
+                    <td class="adminContent">
+                        @Html.EditorFor(model => model.NgayDatVe)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="width:15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Hành trình:
+                    </td>
+                    <td class="adminContent">
+                        @Html.DropDownListFor(model => model.HanhTrinhId, Model.HanhTrinhs, new { @Id = "QLHanhTrinhId" })
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="width:15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Lịch trình:
+                    </td>
+                    <td class="adminContent">
+                        @Html.DropDownListFor(model => model.LichTrinhId, Model.LichTrinhs, new { @Id = "QLLichTrinhId" })
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="width:15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Trạng thái:
+                    </td>
+                    <td class="adminContent">
+                        @Html.DropDownListFor(model => model.TrangThaiId, Model.TrangThais, new { @Id = "QLTrangThaiId" })
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="width:15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Đón khách:
+                    </td>
+                    <td class="adminContent">
+                        @Html.DropDownListFor(model => model.LoaiDonKhachId, Model.LoaiDonKhachs, new { @Id = "QLLoaiDonKhachId" })
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <input type="button" id="btnSearch" class="k-button" value="Tìm kiếm" />
+        </td>
+    </tr>
+</table>
+
+<table class="adminContent">
+    <tr>
+        <td>
+            <div id="gridlist"></div>
+
+            <script>
+                function RefreshGridDatVe() {
+                    var grid = $('#gridlist').data('kendoGrid');
+                    grid.dataSource.read();
+                }
+                $(document).ready(function () {
+                    $("#@Html.FieldIdFor(model => model.ThongTinDatVe)").keydown(function (event) {
+                        if (event.keyCode == 13) {
+                            RefreshGridDatVe();
+                        }
+                    });
+                    $('#QLLichTrinhId').change(function () {
+                        RefreshGridDatVe();
+                    });
+                    $('#QLTrangThaiId').change(function () {
+                        RefreshGridDatVe();
+                    });
+                    $('#QLHanhTrinhId').change(function () {
+                        var selectedItem = $(this).val();
+                        var ddlnguonve = $("#QLLichTrinhId");
+                        $.ajax({
+                            cache: false,
+                            type: "GET",
+                            url: "@(Url.Action("GetLichTrinh", "Limousine"))",
+                            data: { "HanhTrinhId": selectedItem },
+                            success: function (data) {
+                                ddlnguonve.html('');
+                                $.each(data, function (id, option) {
+                                    ddlnguonve.append($('<option></option>').val(option.Id).html(option.MoTa));
+                                });
+                                RefreshGridDatVe();
+                            },
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                alert('Failed to retrieve nguonve.');
+                            }
+                        });
+                    });
+
+                    $('#btnSearch').click(function () {
+                        RefreshGridDatVe();
+                        return false;
+                    });
+                    $("#gridlist").kendoGrid({
+                        dataSource: {
+                            type: "json",
+                            transport: {
+                                read: {
+                                    url: "/Limousine/QuanLyDatVe",
+                                    type: "POST",
+                                    dataType: "json",
+                                    data: additionalData
+                                }
+                            },
+                            schema: {
+                                data: "Data",
+                                total: "Total",
+                                errors: "Errors"
+                            },
+                            error: function (e) {
+                                display_kendoui_grid_error(e);
+                                // Cancel the changes
+                                this.cancelChanges();
+                            },
+                            serverPaging: false,
+                            serverFiltering: false,
+                            serverSorting: false
+                        },
+
+                        scrollable: false,
+                        columns: [
+                                  {
+                                      title: "Mã", width: "120px",
+                                      attributes: {
+                                          style: "text-align: center;"
+                                      },
+                                      headerAttributes: { style: "text-align: center;" },
+                                      template: '<a href="javascript:ChiTietDatVe(#=Id#);">#=Ma#</a>',
+                                  },
+                                   {
+                                       title: "Khách hàng", width: "120px",
+                                       attributes: {
+                                           style: "text-align: center;"
+                                       },
+                                       headerAttributes: { style: "text-align: center;" },
+                                       template: '#=TenKhachHang+"("+DienThoai+")"#'
+                                   },
+                                  {
+                                      field: "NgayDi",
+                                      title: "Ngày đi",
+                                      type: "date",
+                                      attributes: { style: "text-align:center" },
+                                      headerAttributes: { style: "text-align: center;" },
+                                      format: "{0:dd/MM/yyyy}"
+
+                                  },
+                                   {
+                                       field: "TenLichTrinh", title: "Giờ chạy", width: "120px",
+                                       attributes: {
+                                           style: "text-align: center;"
+                                       },
+                                       headerAttributes: { style: "text-align: center;" }
+                                   },
+                                   {
+                                       field: "TenChuyenDi", title: "Đi chuyến", width: "120px",
+                                       attributes: {
+                                           style: "text-align: center;"
+                                       },
+                                       headerAttributes: { style: "text-align: center;" }
+                                   },
+                                  {
+                                      field: "TrangThaiText", title: "Trạng thái",
+                                      headerAttributes: { style: "text-align: center;" },
+                                      attributes: { style: "text-align:center" }
+
+                                  },
+                                  {
+                                      title: "Đón taxi",
+                                      headerAttributes: { style: "text-align: center;" },
+                                      attributes: { style: "text-align:center" },
+                                      template: '#=isDonTaxi ? "Đón tại: "+ DiaChiNha +"<br /><a href=\'javascript:InLenhDonTaXi("+Id+",\\""+MaTaXi+"\\")\' class=\'k-button\'>In lệnh đón</a> &nbsp;" : "Không đón"# #= isDonTaxi && isLenhDonTaXi ? "<br />(Đã in)":""# #= isDonTaxi && !isLenhDonTaXi ? "<br />(Chưa in lệnh)":""#'
+
+                                  },
+                                  {
+                                      field: "TenDiemDon", title: "Điểm chờ",
+                                      headerAttributes: { style: "text-align: center;" },
+                                      attributes: { style: "text-align:center" }
+
+                                  },
+                                  {
+                                      field: "NgayTao",
+                                      title: "Ngày tạo",
+                                      type: "date",
+                                      attributes: { style: "text-align:center" },
+                                      headerAttributes: { style: "text-align: center;" },
+                                      format: "{0:dd/MM/yyyy HH:mm}"
+
+                                  },
+                                  {
+                                      field: "TenNguoiTao", title: "Người tạo",
+                                      headerAttributes: { style: "text-align: center;" },
+                                      attributes: { style: "text-align:center" }
+                                  }, {
+                                      title: "Nhật ký", width: "120px",
+                                      attributes: {
+                                          style: "text-align: center;"
+                                      },
+                                      headerAttributes: { style: "text-align: center;" },
+                                      template: '<a href="javascript:DatVeNhatKy(#=Id#);">Nhật ký</a>',
+                                  },
+                                       {
+                                           title: "Sửa",
+                                           width: 70,
+                                           headerAttributes: { style: "text-align: center;" },
+                                           attributes: { style: "text-align:center" },
+                                           template: '#= isEdit ? "<a href=\'javascript:OpenWindowDatMuaVe("+Id+")\' class=\'k-button\' >Sửa</a>" :""#'
+
+                                       }
+                        ]
+                    });
+
+
+                });
+                function InLenhDonTaXi(Id, MaTaXi) {
+                    if (MaTaXi == null || MaTaXi == "" || MaTaXi == "null") {
+                        OpenWindowInLenhTaXi(Id);
+                    }
+                    else
+                        window.open("/NhaXeCauHinh/InPhieu?MaId=@((int)Nop.Core.Domain.NhaXes.ENNhaXeCauHinh.LENH_DON_TAXI)&Id=" + Id, "_blank");
+                }
+                function ChiTietDatVe(id) {
+                    var formchitiet = $("#ChiTietGiaoDich");
+                    formchitiet.kendoWindow({
+                        width: "600px",
+                        height: "350px",
+                        title: "Chi tiết đặt vé",
+                        content: "@(Url.Action("_ChiTietDatVe", "Limousine"))?Id=" + id,
+                        actions: [
+                            "Close"
+                        ],
+                    }).data("kendoWindow").center();
+                    formchitiet.data('kendoWindow').open();
+                }
+                function DatVeNhatKy(id) {
+                    var formchitiet = $("#ChiTietGiaoDichNhatKy");
+                    formchitiet.kendoWindow({
+                        width: "600px",
+                        height: "350px",
+                        title: "Nhật ký đặt vé",
+                        content: "@(Url.Action("_NhatKyDatVe", "Limousine"))?Id=" + id,
+                        actions: [
+                            "Close"
+                        ],
+                    }).data("kendoWindow").center();
+                    formchitiet.data('kendoWindow').open();
+                }
+                function additionalData() {
+
+                    var data =
+                    {
+                        ThongTinDatVe: $('#@Html.FieldIdFor(model => model.ThongTinDatVe)').val(),
+                        NgayDatVe: $('#@Html.FieldIdFor(model => model.NgayDatVe)').val(),
+                        HanhTrinhId: $('#QLHanhTrinhId').val(),
+                        LichTrinhId: $('#QLLichTrinhId').val(),
+                        TrangThaiId: $('#QLTrangThaiId').val(),
+                        LoaiDonKhachId: $('#QLLoaiDonKhachId').val(),
+                    };
+                    return data;
+                }
+            </script>
+        </td>
+    </tr>
+</table>
+<div id="ChiTietGiaoDich" style="display:none">
+</div>
+<div id="ChiTietGiaoDichNhatKy" style="display:none">
+</div>
+<div id="FormWindowDatMuaVe" style="display:none">
+</div>
+<div id="FormWindowInLenhTaXi" style="display:none">
+</div>
+<script>
+    ////////////////////////////////////////////////////////////////////////////////FORM WINDOW NGHIEP VU
+    function OpenWindowInLenhTaXi(DatVeId) {
+        var _formtemp = $("#FormWindowInLenhTaXi");
+        _formtemp.html('');
+        _formtemp.kendoWindow({
+            width: "500px",
+            height: "220px",
+            title: "Tạo lệnh đón khách bằng taxi",
+            content: "@(Url.Action("_LenhTaXi", "Limousine"))?DatVeId=" + DatVeId,
+            modal: true,
+            actions: [
+                "Close"
+            ],
+        }).data("kendoWindow").center();
+        _formtemp.data('kendoWindow').open();
+    }
+    function CloseWindowInLenhTaXi() {
+        $("#FormWindowInLenhTaXi").data('kendoWindow').close();
+    }
+    function OpenWindowDatMuaVe(Id) {
+        var formdatmuave = $("#FormWindowDatMuaVe");
+        formdatmuave.html('');
+        var HanhTrinhId = $('#QLHanhTrinhId').val();
+        formdatmuave.kendoWindow({
+            width: "660px",
+            height: "350px",
+            title: "Đặt vé",
+
+            content: "@(Url.Action("_DatVe", "Limousine"))?DatVeId=" + Id + "&ChuyenDiId=0",
+            modal: true,
+            actions: [
+                "Close"
+            ],
+        }).data("kendoWindow").center();
+        formdatmuave.data('kendoWindow').open();
+    }
+
+    function CloseWindowDatMuaVe(isReload) {
+        $("#FormWindowDatMuaVe").data('kendoWindow').close();
+        if (isReload)
+            RefreshGridDatVe();
+    }
+</script>

@@ -1,0 +1,141 @@
+﻿@model CauHinhGiaVeSoDoGheModel
+@using Nop.Web.Models.NhaXes
+@using Nop.Core.Domain.Chonves
+@using Nop.Core.Domain.NhaXes;
+
+<div>
+    <div class="section-header">
+        
+        <div class="options">
+            
+            <input type="button" id="btndongy" value="Đồng ý" class="k-button" />
+        </div>
+    </div>
+    @DanhSachXe(Model.SoDoGheGiaVes)
+</div>
+@helper DanhSachXe(List<CauHinhGiaVeSoDoGheModel.SoDoGheGiaVe> items)
+{
+    <table id="BangDanhSach">
+        <thead>
+            <tr>
+                <td>Số ghê</td>
+                <td>Giá vé</td>
+               
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < items.Count(); i++)
+            {
+               
+                var _class = "";
+                if (i % 2 == 0)
+                {
+                    _class = "RowColor";
+                }
+                <tr class="@_class">
+                    
+                    <td style="font-weight: 900;font-size: 14px;">
+                        @items[i].SoGhe
+                    </td>
+                   
+                    <td>
+                        <input name="GiaVe" id="@items[i].SoDoGheId" value="@items[i].GiaVe" />
+                    </td>
+                  
+
+                </tr>
+            }
+
+        </tbody>
+    </table>
+
+}
+
+<script>
+    function GetGiaVeInput() {
+
+        //luu theo cu phap changid|seri1,seri2|changid|seri1,seri2
+        var resultinput = "";
+        $("input[name='GiaVe']").each(function () {
+
+            var input = $(this);
+            var idinfo = input.attr('id');
+            if (resultinput == "")
+                resultinput = idinfo + "|" + input.val();
+            else
+                resultinput = resultinput + "|" + idinfo + "|" + input.val();
+        });
+        return resultinput;
+    }
+
+    $(document).ready(function () {
+
+        $('#btndongy').click(function () {
+            if (!confirm("Bạn có chắc chắn cập nhật dữ liệu này ?"))
+                return false;
+
+            var GiaVeSoDo =GetGiaVeInput();
+           
+            var adddata = {               
+                HanhTrinhId: @Model.HanhTrinhId,
+                LoaiXeId: @Model.LoaiXeId,
+                GiaVeSoDo: GiaVeSoDo
+                
+            }
+
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "/Limousine/_CauHinhGiaVeSoDo",
+                data: adddata,
+                success: function (data)
+                {
+                    
+                    LoadSoDoGiaVe();
+                       
+                },
+                error: function (xhr, ajaxOptions, thrownError)
+                {
+                    alert('Có lỗi trong quá trình xử lý');
+                 
+                
+                }
+            });
+        });
+
+    });
+
+
+</script>
+<style>
+    h3 {
+        text-align: center;
+    }
+
+    .RowColor {
+        background-color: #f5f5f5;
+    }
+
+    #BangDanhSach {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        #BangDanhSach thead {
+            font-weight: 700;
+            text-align: center;
+        }
+
+        #BangDanhSach, #BangDanhSach tr, #BangDanhSach tr td {
+            border: 1px solid #cccccc;
+            text-align: center;
+        }
+
+            #BangDanhSach tr {
+                height: 45px;
+            }
+
+    .khonghienthi {
+        display: none;
+    }
+</style>

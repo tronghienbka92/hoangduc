@@ -1,0 +1,162 @@
+﻿@model TKLuotKhachHangModel
+@using Nop.Web.Models.NhaXeBaoCao
+@using Nop.Core.Domain.NhaXes
+@using Nop.Core.Infrastructure
+
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+
+}
+<div class="section-header">
+    <div class="title">
+        <img src="@Url.Content(" ~ /Content/chonve/nxmenu/baocaodoanhthu.png")" alt="" />
+       Thống kê lượt theo khách hàng
+    </div>
+    <div class="options">
+        <input type="button" id="exportdoanhthu" class="k-button" value="Xuất ra excel" />
+    </div>
+</div>
+
+@using (Html.BeginForm("ExportExcelKhachHang", "NhaXeBaoCao", FormMethod.Post, new { id = "export-xml-selected-form" }))
+{
+
+    <table style="width:100%">
+        <tr>
+            <td align="center" width="15%">
+                <table class="adminContent">
+                    <tr>
+                        <td class="adminTitle" style="text-align:right">
+                            @Html.LabelFor(model => model.TuNgay):
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.TuNgay)
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td align="center" width="15%" id="tabThang">
+                <table class="adminContent">
+                    <tr>
+                        <td class="adminTitle" style="text-align:right">
+                            @Html.LabelFor(model => model.DenNgay):
+                        </td>
+                        <td class="adminData">
+                            @Html.EditorFor(model => model.DenNgay)
+
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td align="center" width="15%" id="tabNam">
+                <table class="adminContent">
+                    <tr>
+                        <td class="adminTitle" style="text-align:right">
+                            Tìm Khách hàng:
+                        </td>
+                        <td class="adminData">
+                            <input id="cbbSearchKhachHang" style="width:280px" value="@Model.DienThoai" />
+                            @Html.HiddenFor(m => m.DienThoai)
+                            @Html.HiddenFor(m => m.KhachHangId)
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td style="text-align:right">
+                <input type="button" id="btnSearch" class="k-button" value="@T(" admin.common.search")" />
+            </td>
+        </tr>
+    </table>
+}
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#exportdoanhthu').click(function () {
+            //   e.preventDefault();
+            var TuNgay = $("#@Html.FieldIdFor(model => model.TuNgay)").val();
+            var DenNgay = $("#@Html.FieldIdFor(model => model.DenNgay)").val();
+            var KhachHangId = $("#@Html.FieldIdFor(model => model.KhachHangId)").val();
+
+            $('#export-xml-selected-form #TuNgay').val(TuNgay);
+            $('#export-xml-selected-form #DenNgay').val(DenNgay);
+            $('#export-xml-selected-form #KhachHangId').val(KhachHangId);
+            $('#export-xml-selected-form').submit();
+            return false;
+        });
+    });
+
+</script>
+
+
+
+
+
+<script>
+    $(document).ready(function () {
+        $('#btnSearch').click(function () {
+            LoadLuotKhachHang();
+        });
+        $('#btnSearch').click();
+    });
+    function LoadLuotKhachHang() {
+        var TuNgay = $('#@Html.FieldIdFor(m => m.TuNgay)').val();
+        var DenNgay = $('#@Html.FieldIdFor(m => m.DenNgay)').val();
+        var KhachHangId = $('#@Html.FieldIdFor(m => m.KhachHangId)').val();
+        $.ajax({
+            cache: false,
+            type: "GET",
+            dataType: "html",
+            contentType: 'application/html;charset=utf-8',
+            data: { "TuNgay": TuNgay, "DenNgay": DenNgay, "KhachHangId": KhachHangId },
+            url: "@(Url.Action("_GetThongKeLuotKhachHang", "NhaXeBaoCao"))",
+            success: function (data) {
+
+                if (data != null) {
+                    $("#BangDoanhThuXe").html(data);
+                }
+                else {
+                    $("#BangDoanhThuXe").html("<p>Không có quyền báo vé</p>")
+                }
+
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                alert('Chưa đủ thông tin');
+            }
+        });
+    }
+    $('#cbbSearchKhachHang').kendoComboBox({
+        placeholder: "Khách hàng",
+        dataTextField: "ThongTin",
+        dataValueField: "Id",
+        filter: "contains",
+        autoBind: false,
+        minLength: 3,
+        dataSource: {
+            type: "json",
+            serverFiltering: true,
+            transport: {
+                read: {
+                    url: "@Html.Raw(Url.Action("GetKhachHangInNhaXe", "Limousine"))",
+                data: dataSearchKhachHang
+            }
+        }
+    },
+        change: onChange
+    });
+    function onChange() {
+        var DataItem = this.dataItem();
+        $('#@Html.FieldIdFor(model => model.KhachHangId)').val(DataItem.Id);
+        $('#@Html.FieldIdFor(model => model.DienThoai)').val(DataItem.ThongTin);
+        LoadLuotKhachHang();
+
+    }
+
+    function dataSearchKhachHang() {
+        var thongtin = $('#cbbSearchKhachHang').data("kendoComboBox").text();
+        return {
+            ThongTin: thongtin
+        };
+    }
+</script>
+<div id="BangDoanhThuXe" style="overflow-x: scroll; overflow-y: scroll;height:500px">
+</div>

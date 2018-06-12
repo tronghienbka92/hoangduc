@@ -1,0 +1,178 @@
+﻿@model QuanLyKhachHangModel
+@using Nop.Services.NhaXes
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+
+
+    //page title
+    ViewBag.Title = "Thông tin khách hàng của nhà xe";
+}
+<div class="section-header">
+    <div class="title">
+        <img src="@Url.Content("~/Content/chonve/nxmenu/phoive.png")" alt="" />
+        @ViewBag.Title
+    </div>
+    <div class="options">
+        @if (Model.isQuanTri)
+        {
+
+            <a href="javascript:XuatExcel()" class="k-button">Xuất ra file Execl</a>
+            <script>
+                function XuatExcel() {
+
+        
+        $('#export-xml-selected-form #ThongTinKhachHang').val($('#@Html.FieldIdFor(m=>m.ThongTinKhachHang)').val());
+        $('#export-xml-selected-form #LoaiTimKiemId').val($('#@Html.FieldIdFor(m=>m.LoaiTimKiemId)').val());
+        $('#export-xml-selected-form').submit();
+        return false;
+    }
+</script>
+        }
+
+    </div>
+</div>
+<table style="width:100%">
+    <tr>
+        <td style="width:20%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle">
+                        Thông tin khách hàng:
+                    </td>
+                    <td class="adminData">
+                        @Html.TextBoxFor(m => m.ThongTinKhachHang, new { placeholder = "Tên khách hàng hoặc SĐT...", style = "width:250px" })
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="width:20%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle">
+                        Tìm theo:
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(m => m.LoaiTimKiemId, Model.LoaiTimKiems)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td style="text-align:left">
+            <input type="button" id="btnSearch" class="k-button" value="Tìm kiếm" />
+        </td>
+    </tr>
+</table>
+<table class="adminContent">
+    <tr>
+        <td>
+            <div id="danhsach-grid"></div>
+
+            <script>
+                $(document).ready(function () {
+                    $("#danhsach-grid").kendoGrid({
+                        dataSource: {
+                            type: "json",
+                            transport: {
+                                read: {
+                                    url: "@Html.Raw(Url.Action("QuanLyKhachHang", "Limousine"))",
+                                    type: "POST",
+                                    dataType: "json",
+                                    data: additionalData
+                                }
+                            },
+                            schema: {
+                                data: "Data",
+                                total: "Total",
+                                errors: "Errors"
+                            },
+                            error: function (e) {
+                                display_kendoui_grid_error(e);
+                                // Cancel the changes
+                                this.cancelChanges();
+                            },
+                            serverPaging: false,
+                            serverFiltering: false,
+                            serverSorting: false
+                        },
+                        scrollable: false,
+                        columns: [{
+                            field: "Ten",
+                            title: "Khách Hàng",
+                            width: 200
+                        }, {
+                            field: "DienThoai",
+                            title: "Số Điện Thoại",
+                            width: 200
+                        }, {
+                            field: "DiaChi",
+                            title: "Địa Chỉ"
+                        }, {
+                            field: "SoLuongDat",
+                            title: "SL Vé đặt"
+                        }, {
+                            field: "SoLuongHuy",
+                            title: "SL Vé hủy"
+                        }, {
+                            field: "Id",
+                            title: "@T("Admin.Common.Edit")",
+                            width: 100,
+                            template: '<a href="javascript:SuaKhachHang(#=Id#)">@T("Admin.Common.Edit")</a>'
+                        }
+
+                        ]
+                    });
+                });
+            </script>
+
+            <script type="text/javascript">
+                $(document).ready(function () {
+                    //search button
+                    $('#btnSearch').click(function () {
+                        //search
+                        var grid = $('#danhsach-grid').data('kendoGrid');
+                        //grid.dataSource.page(1); //new search. Set page size to 1
+                        grid.dataSource.read(); //we already loaded the grid above using "page" function
+                        return false;
+                    });
+                    $('#@Html.FieldIdFor(m=>m.ThongTinKhachHang)').keydown(function (event) {
+                        if (event.keyCode == 13) {
+                            $("#btnSearch").click();
+                            return false;
+                        }
+                    });
+                });
+
+                function additionalData() {
+                    return {
+                        ThongTinKhachHang: $('#@Html.FieldIdFor(m=>m.ThongTinKhachHang)').val(),
+                        LoaiTimKiemId: $('#@Html.FieldIdFor(m=>m.LoaiTimKiemId)').val(),
+                    };
+                }
+                function SuaKhachHang(Id) {
+                    var formkhachhang = $("#dtvKhachHang");
+                    formkhachhang.html('');
+                    formkhachhang.kendoWindow({
+                        width: "500px",
+                        title: "Chỉnh sửa thông tin khách hàng",
+                        content: "@(Url.Action("_KhachHangChinhSua", "Limousine"))?Id=" + Id,
+                        modal: true,
+                        actions: [
+                            "Close"
+                        ],
+                    }).data("kendoWindow").center();
+                    formkhachhang.data('kendoWindow').open();
+                }
+                function CloseSuaKhachHang() {
+                    $("#dtvKhachHang").data('kendoWindow').close();
+                    $("#btnSearch").click();
+                }
+</script>
+        </td>
+    </tr>
+</table>
+<div id="dtvKhachHang" style="display:none"></div>
+@using (Html.BeginForm("ExportExcelKhachHangThongKe", "NhaXeBaoCao", FormMethod.Post, new { id = "export-xml-selected-form" }))
+{
+    <input type="hidden" id="ThongTinKhachHang" name="ThongTinKhachHang" value="" />
+    <input type="hidden" id="LoaiTimKiemId" name="LoaiTimKiemId" value="0" />
+}

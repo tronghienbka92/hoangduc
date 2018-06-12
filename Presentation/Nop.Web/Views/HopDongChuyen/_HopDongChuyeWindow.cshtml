@@ -1,0 +1,23 @@
+﻿<div id="formphieuguihangchitiet" style="display:none">
+</div>
+<script>
+    function ChiTietHopDong(Id) {
+        
+        var formtemp = $("#formphieuguihangchitiet");
+        formtemp.html("");
+        if (formtemp.data("kendoWindow"))
+            formtemp.data("kendoWindow").destroy()
+        formtemp.kendoWindow({
+            modal: true,
+            width: "900px",
+            title: "Thông tin hợp đồng",
+            content: "@(Url.Action("HopDongChuyenChiTiet", "HopDongChuyen"))" + "?Id=" + Id,
+            actions: ["Close"]
+    });
+    formtemp.data('kendoWindow').center().open();
+    }
+    function SetWindowPhieuCTCenter()
+    {
+        $("#formphieuguihangchitiet").data("kendoWindow").center();
+    }
+</script>

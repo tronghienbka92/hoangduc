@@ -1,0 +1,100 @@
+﻿@model CauHinhGiaVeSoDoGheModel
+@using Nop.Web.Models.NhaXes
+@using Nop.Core.Domain.Chonves
+@using Nop.Core.Domain.NhaXes;
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+}
+<div class="section-header">
+    <div class="title">
+        <img src="@Url.Content("~/Content/chonve/nxmenu/phoive.png")" alt="" />
+        Cấu hình giá vé theo so do
+    </div>
+    <div class="options">
+
+    </div>
+</div>
+<table style="width:100%">
+    <tr>
+      
+        <td align="center" width="15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Hành trình:
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.HanhTrinhId, Model.HanhTrinhs)
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td align="center" width="15%">
+            <table class="adminContent">
+                <tr>
+                    <td class="adminTitle" style="text-align:right">
+                        Ngày đi:
+                    </td>
+                    <td class="adminData">
+                        @Html.DropDownListFor(model => model.LoaiXeId, Model.LoaiXes)
+                    </td>
+                </tr>
+            </table>
+        </td>
+      
+        <td>
+            <input type="button" id="btnSearch" class="k-button" value="Tìm kiếm" />
+        </td>
+    </tr>
+</table>
+<div id="SoDoGhe"></div>
+<script>
+    function LoadSoDoGiaVe() {
+        var _hanhtrinhid = $("#@Html.FieldIdFor(m=>m.HanhTrinhId)").val();
+       
+        var _loaixeid = $("#@Html.FieldIdFor(m=>m.LoaiXeId)").val();
+        var additionalData = {
+            HanhTrinhId: _hanhtrinhid,
+            LoaiXeId: _loaixeid
+           
+        };
+        $.ajax({
+            cache: false,
+            type: "GET",
+            dataType: "html",
+            contentType: 'application/html;charset=utf-8',
+            data: additionalData,
+            url: "@(Url.Action("_CauHinhGiaVeSoDo", "Limousine"))",
+            success: function (data) {
+
+                if (data != null)
+                {
+                    $("#SoDoGhe").html(data);
+                }
+                else
+                {
+                    $("#SoDoGhe").html("<p>Không có quyền</p>")
+                }
+
+            },
+        error: function (xhr, ajaxOptions, thrownError) {
+            alert('Chưa đủ thông tin');
+        }
+    });
+    }
+    $(document).ready(function () {
+        LoadSoDoGiaVe();
+        //load lai thong tin lich trinh thuoc hanh trinh dang chon
+        $('#@Html.FieldIdFor(model => model.HanhTrinhId)').change(function () {
+            LoadSoDoGiaVe();
+        });
+        $('#@Html.FieldIdFor(model => model.LoaiXeId)').change(function () {
+            LoadSoDoGiaVe();
+        });
+       
+        $('#btnSearch').click(function () {
+            LoadSoDoGiaVe();
+          
+        });
+    });
+</script>

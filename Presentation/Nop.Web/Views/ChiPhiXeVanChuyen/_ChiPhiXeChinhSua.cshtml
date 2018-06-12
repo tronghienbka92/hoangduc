@@ -1,0 +1,163 @@
+﻿@model ChiPhiXeModel
+@using Nop.Services.NhaXes
+@using Nop.Web.Models.ChiPhiXeVanChuyen;
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            Biển số xe:
+        </td>
+        <td class="adminData">
+            <input id="cbbBienSoInput" style="width:100%" value="@Model.BienSo" />
+            @Html.HiddenFor(m => m.XeVanChuyenId)
+            <script>
+                //tao thong tin xe                
+                function ThongTinBienSoInput() {
+                    $("#cbbBienSoInput").kendoComboBox({
+                        placeholder: "Chọn biển số",
+                        dataTextField: "BienSo",
+                        dataValueField: "Id",
+                        filter: "contains",
+                        autoBind: false,
+                        minLength: 1,
+                        dataSource: {
+                            data: xevanchuyendatasoures
+                        },
+                        change: function (e) {          
+                            var DataItem = this.dataItem();
+                            $('#@Html.FieldIdFor(m => m.XeVanChuyenId)').val(DataItem.Id);
+                        }
+                    });
+                }
+                $(document).ready(function(){
+                    ThongTinBienSoInput();
+                });
+            </script>
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Tên lái xe:
+        </td>
+        <td class="adminData">
+            @Model.TenLaiXe
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Hạng mục:
+        </td>
+        <td class="adminData">
+            @Html.DropDownListFor(m => m.HangMucChiPhiId, Model.hangmucs)
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+            Tên công việc:
+        </td>
+        <td class="adminData">
+            @Html.TextAreaFor(m => m.TenCongViec)
+        </td>
+    </tr>      
+    <tr>
+        <td class="adminTitle">
+            Chi phí:
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(m=>m.ChiPhi)
+        </td>
+    </tr>   
+    <tr>
+        <td class="adminTitle">
+            Thời gian:
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(m => m.ThoiGian)
+        </td>
+    </tr>     
+    <tr>
+        <td class="adminTitle">
+            Ngày thực hiện:
+        </td>
+        <td class="adminData">
+            @Html.EditorFor(m => m.NgayGiaoDich)
+        </td>
+    </tr>  
+    <tr>
+        <td colspan="2" style="text-align:center">
+            <button id="btnDongY" class="k-button" style="width:180px;height:40px">Đồng ý</button>
+        </td>
+    </tr>
+</table>
+<script>
+    $(document).ready(function () {
+        setTimeout(function () {
+            $('#cbbBienSoInput').focus();
+        },500);
+        $("#cbbBienSoInput").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $('#@Html.FieldIdFor(model => model.HangMucChiPhiId)').focus();
+                return false;
+            }
+        });
+        $("#@Html.FieldIdFor(model => model.HangMucChiPhiId)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $('#@Html.FieldIdFor(model => model.TenCongViec)').focus();
+                return false;
+            }
+        });
+        $("#@Html.FieldIdFor(model => model.HangMucChiPhiId)").change(function (event) {
+            $('#@Html.FieldIdFor(model => model.TenCongViec)').focus();
+        });
+        $("#@Html.FieldIdFor(model => model.TenCongViec)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $('#@Html.FieldIdFor(model => model.ChiPhi)').focus();
+                return false;
+            }
+        });
+        $("#@Html.FieldIdFor(model => model.ChiPhi)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $('#@Html.FieldIdFor(model => model.ThoiGian)').focus();
+                return false;
+            }
+        });
+        $("#@Html.FieldIdFor(model => model.ThoiGian)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $('#@Html.FieldIdFor(model => model.NgayGiaoDich)').focus();
+                return false;
+            }
+        });
+        $("#@Html.FieldIdFor(model => model.NgayGiaoDich)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $("#btnDongY").click();
+                return false;
+            }
+        });
+        $("#btnDongY").click(function () {
+
+            var _ngaygiaodich = ConvertDateTimeSystem($("#@Html.FieldIdFor(m => m.NgayGiaoDich)").val());
+
+            var dataadd = {
+                "Id": @Model.Id,
+                "XeVanChuyenId": $('#@Html.FieldIdFor(m => m.XeVanChuyenId)').val(),
+                "HangMucChiPhiId": $('#@Html.FieldIdFor(m => m.HangMucChiPhiId)').val(),
+                "TenCongViec": $('#@Html.FieldIdFor(m => m.TenCongViec)').val(),
+                "ChiPhi": $('#@Html.FieldIdFor(m => m.ChiPhi)').val(),
+                "ThoiGian": $('#@Html.FieldIdFor(m => m.ThoiGian)').val(),
+                "NgayGiaoDich": _ngaygiaodich
+            };
+
+            $.ajax({
+                cache: false,
+                type: "POST",
+                data: dataadd,
+                url: "@(Url.Action("ChiPhiXeChinhSua", "ChiPhiXeVanChuyen"))",
+                success: function (data) {
+                    CloseSuaChiPhi();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    return alert('Error');
+                }
+            });
+        })
+    });
+</script>

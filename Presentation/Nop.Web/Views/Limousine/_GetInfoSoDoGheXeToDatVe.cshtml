@@ -1,0 +1,435 @@
+﻿@model QuanLyChuyenModel
+@using Nop.Services.NhaXes
+@using Nop.Core.Domain.NhaXes;
+
+<div style="display:block;position:absolute;right:5px;top:5px;padding:5px;font-size:15px;">
+    <table>
+        <tr>
+            <td style="text-align:left;width:80px;">
+                Biển số xe:
+            </td>
+            <td style="text-align:left;font-weight:bold">
+                @Model.chuyendihientai.BienSoXe
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:left;">
+                Lái xe:
+            </td>
+            <td style="text-align:left;font-weight:bold">
+                @Model.chuyendihientai.TenLaiXe
+            </td>
+        </tr>
+
+    </table>
+</div>
+<div id="InfoSotienSoKhach" style="display:block;position:absolute;right:0px;bottom:302px;padding:5px;font-size:15px;z-index:999;">
+    <table>
+        <tr>
+            <td style="text-align:left;width:250px;font-size: 24px;">
+                Số tiền lái xe thu:
+            </td>
+            <td style="text-align:left;font-weight:bold;font-size: 24px;">
+                @Model.chuyendihientai.TienChuaThanhToan.ToString("###,###")
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:left;font-size: 24px;">
+                Tổng số khách:
+            </td>
+            <td style="text-align:left;font-weight:bold;font-size: 24px;">
+                @Model.chuyendihientai.SoKhach
+            </td>
+        </tr>
+
+    </table>
+</div>
+
+<div style="border:1px solid #0e6780;width:100%">
+    @SoDoGhe(1)
+</div>
+<input type="hidden" id="datveidselected" value="" />
+@helper SoDoGhe(int tang)
+{
+    int SoLuongKhach = 0;
+
+
+    bool isEdit = true;
+
+    bool isinphoi = true;
+    //neu thoi gian qua 15 phut thi khong dc thao tac chuyen di nua
+    if (Model.chuyendihientai.NgayDiThuc < DateTime.Now.AddMinutes(-60) && Model.sodoghe.PhanLoai == ENPhanLoaiPhoiVe.PHOI_VE)
+    {
+        if (!Model.isQuanTri)
+        {
+            isEdit = false;
+            isinphoi = false;
+            <strong style="text-align:center;color:red;font-size:14px">Đã quá thời hạn đặt vé</strong>
+        }
+
+    }
+
+    <div class="divquytacsodoghe">
+        <table class="quytacsodoghe">
+            @for (int c = 1; c < Model.sodoghe.SoCot + 1; c++)
+            {
+                <tr>
+                    @for (int h = Model.sodoghe.SoHang; h >= 1; h--)
+                    {
+
+                        @gheInfo(h, c, tang, isinphoi, isEdit)
+                        if (Model.sodoghe.MaTran[h - 1, c - 1] == 1)
+                        {
+                            ENTrangThaiDatVe tt = Model.sodoghe.DatVes[h, c].trangthai;
+                            if (tt == ENTrangThaiDatVe.DA_XEP_CHO || tt == ENTrangThaiDatVe.DA_DI || tt == ENTrangThaiDatVe.HUY)
+                            {
+                                SoLuongKhach++;
+                            }
+                        }
+
+
+
+
+                    }
+                </tr>
+            }
+        </table>
+    </div>
+    <script>
+        @if (Model.sodoghe.PhanLoai == ENPhanLoaiPhoiVe.PHOI_VE)
+                {
+                    <text>
+        
+        $(document).ready(function () {
+
+            SetSoLuongKhachDatVe(@Model.chuyendihientai.Id,@SoLuongKhach,@Model.chuyendihientai.SoGhe);
+            
+        });
+        </text>
+                }
+    </script>
+}
+
+
+@helper gheInfo(int h, int c, int tang, bool inphoi, bool isEdit)
+{
+    var withcol = 100 / Model.sodoghe.SoHang;
+    var SLChuaThanhToan = 0;
+    var _class = "quytacsodoghedamua";
+    var _classmenucontext = "phoive_menucontext_datve";
+    var _classbg = "ghenam_cell_noprint_ghengoi";
+    if (inphoi)
+    {
+        _classbg = "ghenam_cell_print_ghengoi";
+    }
+    if (Model.isCheckChuyenVe)
+    {
+        _classmenucontext = "phoive_menucontext_datve_adv";
+    }
+
+    if (Model.sodoghe.MaTran[h - 1, c - 1] == 1)
+    {
+        var datveitem = Model.sodoghe.DatVes[h, c];
+        var stylebgcolorother = "";
+        if (datveitem.trangthai == ENTrangThaiDatVe.DA_XEP_CHO || datveitem.trangthai == ENTrangThaiDatVe.DA_DI || datveitem.trangthai == ENTrangThaiDatVe.HUY)
+        {
+            if (datveitem.GiaTien != Model.chuyendihientai.GiaVe)
+            {
+                stylebgcolorother = "background-color: rgba(15, 202, 18, 0.80);";
+            }
+            if (datveitem.GiaTien == 0)
+            {
+                stylebgcolorother = "background-color: #ff0000c2;";
+            }
+        }
+
+        var _actionlink = "javascript:ChonGhe(" + datveitem.Id.ToString() + ");";
+        if (Model.sodoghe.PhanLoai == ENPhanLoaiPhoiVe.CHUYEN_VE)
+        {
+            _actionlink = "javascript:ShowHintMouseRightClick();";
+        }
+        switch (datveitem.trangthai)
+        {
+            case ENTrangThaiDatVe.CON_TRONG:
+                {
+                    if (Model.sodoghe.PhanLoai == ENPhanLoaiPhoiVe.PHOI_VE)
+                    {
+                        _actionlink = string.Format("javascript:ShowHintMouseRightClick('{1}');ChonGheDatCho('{0}',false)", datveitem.SoDoGheId, T("chonve.nhaxe.quanlyphoive.mouserighthint"));
+                    }
+                    else if (Model.sodoghe.PhanLoai == ENPhanLoaiPhoiVe.CHUYEN_VE)
+                    {
+                        _actionlink = string.Format("javascript:ChonGheChuyenVe('{0}')", datveitem.SoDoGheId);
+                    }
+                    _class = "ghenam_cell_trong";
+                    break;
+                }
+            case ENTrangThaiDatVe.MOI:
+                {
+                    _class = "ghenam_cell_datve";
+                    if (Model.sodoghe.PhanLoai == ENPhanLoaiPhoiVe.PHOI_VE)
+                    {
+                        _actionlink = string.Format("javascript:HuyGheDatCho('{0}')", datveitem.Id);
+                        if (datveitem.NguoiTaoId != Model.NhanVienHientTaiId)
+                        {
+                            _actionlink = "javascript:void(0);";
+                            _classmenucontext = "";
+                            _class = "ghenam_cell_datve_busy";
+                        }
+                    }
+
+
+                    break;
+                }
+            case ENTrangThaiDatVe.DA_XEP_CHO:
+                {
+                    _class = "ghenam_cell_giuve";
+                    if (datveitem.isThanhToan)
+                    {
+                        _class = "ghenam_cell_thanhtoan";
+                    }
+                    if (datveitem.isDaXacNhan)
+                    {
+                        SLChuaThanhToan++;
+                        _class = "ghenam_cell_xacnhan";
+                    }
+                    _classmenucontext = "phoive_menucontext_nghiepvu";
+                    break;
+                }
+            case ENTrangThaiDatVe.DA_DI:
+                {
+                    _class = "ghenam_cell_dadi";
+                    _classmenucontext = "";
+                    break;
+                }
+            case ENTrangThaiDatVe.HUY:
+                {
+                    _class = "ghenam_cell_huy";
+                    _classmenucontext = "";
+                    break;
+                }
+        }
+        if (Model.sodoghe.PhanLoai != ENPhanLoaiPhoiVe.PHOI_VE)
+        {
+            _classmenucontext = "";
+        }
+        if (!isEdit)
+        {
+            _classmenucontext = "";
+            _actionlink = "javascript:void(0);";
+        }
+        <td style="width:@withcol%;">
+            <div class="@_classmenucontext" data_phoiveid="@datveitem.Id" data_sodogheid="@datveitem.SoDoGheId" data_tang="@tang" data_trangthai="@((int)datveitem.trangthai)">
+                <a href="@_actionlink" title="@T("chonve.nhaxe.quanlyphoive.mouserighthint")" style="width:100%;height:100%">
+                    <div class="ghenam_cell @_classbg @_class" style="@stylebgcolorother">
+                        <div class="ghenam_cell_kyhieu">@datveitem.sodoghekyhieu</div>
+                        <div class="ghenam_cell_thongtin">
+                            @if (datveitem.trangthai == ENTrangThaiDatVe.DA_XEP_CHO || datveitem.trangthai == ENTrangThaiDatVe.DA_DI || datveitem.trangthai == ENTrangThaiDatVe.HUY)
+                            {
+                                if (datveitem.GiaTien != Model.chuyendihientai.GiaVe)
+                                {
+                                    <span> Mã HĐ: @datveitem.Ma (<span style="font-weight:bold;color:red">@(datveitem.GiaTien.ToString("###,###,##0"))đ</span>) </span>
+                                }
+                                else
+                                {
+                                    <span> Mã HĐ: @datveitem.Ma</span>
+                                }
+                                if (datveitem.VeChuyenDenId > 0)
+                                {
+                                    <span style="color:red">HD chuyển</span>
+                                }
+                                <br />
+                                <span>KH:  @datveitem.TenKhachHang</span>
+                                if (datveitem.isNoiBai)
+                                {
+                                    <span style="text-decoration:underline;color:red"> Thái Bình </span>
+                                }<br />
+                                <span>
+                                    ĐT:  @datveitem.DienThoai
+                                    @if (!String.IsNullOrEmpty(datveitem.GhiChu))
+                                    {
+                                        <text>
+                                            (@datveitem.GhiChu)
+                                        </text>
+                                    }
+                                </span><br />
+                                <span>Điểm chờ: @datveitem.TenDiemDon</span><br />
+                                <span>Điểm trả: @datveitem.TenDiemTra</span><br />
+                                if (Model.sodoghe.PhanLoai == ENPhanLoaiPhoiVe.IN_PHOI_VE)
+                                {
+                                    if (datveitem.isThanhToan)
+                                    {
+                                        <span>TT: Đã thanh toán</span><br />
+                                    }
+
+                                }
+                                <span>Người đặt: @datveitem.TenNguoiTao</span><br />
+                            }
+                            else if (datveitem.trangthai == ENTrangThaiDatVe.MOI)
+                            {
+                                var _timerdatve = datveitem.NgayTao.AddSeconds(Nop.Web.Controllers.LimousineController.THOI_GIAN_GHE_DAT_CHO);
+
+                                <span>@datveitem.TenNguoiTao đang đặt HD...</span><br />
+                                <p>Thời gian còn : <span name="timerdatve" id="timerdatve_@datveitem.Id" data-datveid="@datveitem.Id"></span></p>
+                                <script>
+                                    $(document).ready(function () {
+                                        $('#timerdatve_@datveitem.Id').countdown({ until: new Date(@(_timerdatve.Year),@(_timerdatve.Month-1),@(_timerdatve.Day),@(_timerdatve.Hour),@(_timerdatve.Minute),@(_timerdatve.Second)),onExpiry:HuyGheDatChoTimeout, compact: true, layout: '{mn}:{sn}' });
+                                    });
+                                </script>
+
+                            }
+                        </div>
+                        <div id="box_ghe_dat_ve_chon_@datveitem.Id" class="ghenam_cell_select" style="display:none;">
+                            <img src="/Content/chonve/nhaxe/tick_green.png" style="width:25px;height:25px;" />
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </td>
+    }
+    else
+    {
+        <td style="width:@withcol%"></td>
+    }
+
+}
+
+
+<style>
+    .divquytacsodoghe {
+        width: 100%;
+        padding: 2px;
+    }
+
+    .quytacsodoghe {
+        width: 100%;
+    }
+
+        .quytacsodoghe td {
+            padding: 0px 5px;
+        }
+
+    .ghenam_cell {
+        width: 100%;
+        position: relative;
+        border: solid 1px #bebbbb;
+        margin: 2px;
+        padding: 2px;
+    }
+
+    .ghenam_cell_print {
+        height: 100px;
+    }
+
+    .ghenam_cell_noprint_giuongnam {
+        background: url(/Content/chonve/nhaxe/giuongnambgv80.png) no-repeat bottom right;
+        height: 88px;
+    }
+
+    .ghenam_cell_noprint_ghengoi {
+        background: url(/Content/chonve/nhaxe/ghengoibgv80.png) no-repeat bottom right;
+        height: 104px;
+    }
+
+    .ghenam_cell_print_ghengoi {
+        background: url(/Content/chonve/nhaxe/ghengoibgv80.png) no-repeat bottom right;
+        height: 135px;
+    }
+
+    .ghenam_cell_datve {
+        background-color: rgb(119, 146, 167);
+    }
+
+    .ghenam_cell_trong {
+        background-color: rgba(187, 187, 178, 0.38);
+    }
+
+    .ghenam_cell_datve_busy {
+        background-color: #ceabab;
+    }
+
+    .ghenam_cell_giuve {
+        background-color: rgba(238, 233, 129, 0.73);
+    }
+
+    .ghenam_cell_xacnhan {
+        background-color: rgba(129, 238, 228, 0.54);
+        background-image: url(/Content/chonve/nhaxe/xacnhan.png);
+    }
+
+    .ghenam_cell_dadi {
+        background-color: rgba(192, 248, 200, 0.25);
+        background-image: url(/Content/chonve/nhaxe/xacnhan.png);
+    }
+
+    .ghenam_cell_thanhtoan {
+        background-color: rgba(47, 159, 9, 0.25);
+        background-image: url(/Content/chonve/nhaxe/dathutien.png);
+    }
+
+    .ghenam_cell_huy {
+        background-color: rgba(216, 212, 212, 0.25);
+        background-image: url(/Content/chonve/nhaxe/sodoghe_huy.png);
+    }
+
+    .ghenam_cell_VeYeuCauHuy {
+        background-color: #f00;
+    }
+
+    .ghenam_cell_kyhieu {
+        background-color: #0d4862;
+        color: white;
+        font-size: 12px;
+        height: 18px;
+        width: 25px;
+        position: absolute;
+        float: right;
+        top: 1px;
+        right: 1px;
+        text-align: center;
+        font-weight: bold;
+        border-radius: 5px;
+        padding-top: 3px;
+    }
+
+    .ghenam_cell_select {
+        height: 25px;
+        width: 25px;
+        position: absolute;
+        float: right;
+        bottom: 1px;
+        left: 1px;
+    }
+
+    .ghenam_cell_thongtin {
+        font-size: 14px;
+        height: 18px;
+        width: 25px;
+        position: absolute;
+        float: left;
+        font-family: monospace;
+        top: 2px;
+        left: 3%;
+        text-align: left;
+        width: 100%;
+        color: #082d48;
+    }
+
+    .trangthaithanhtoan_chua {
+        color: #891515;
+        font-weight: bold;
+    }
+
+    .trangthaithanhtoan_ok {
+        color: #094e0a;
+        font-weight: bold;
+    }
+
+    .cell_lai_xe_ghe_ngoi {
+        background: url(/Content/chonve/nhaxe/laixe1.png) no-repeat center;
+        width: 100px;
+        height: 104px;
+        position: absolute;
+        left: -90px;
+        float: right;
+    }
+</style>

@@ -1,0 +1,143 @@
+﻿@model List<LichTrinhLoaiXeModel>
+@using Nop.Web.Models.NhaXes
+@using Nop.Core.Domain.Chonves
+@using Nop.Core.Domain.NhaXes;
+@{
+    Layout = "~/Views/Shared/_NhaXeLayout.cshtml";
+}
+<div class="section-header">
+    <div class="title">
+        <img src="@Url.Content("~/Content/chonve/nxmenu/phoive.png")" alt="" />
+        Cấu hình giá vé
+    </div>
+    <div class="options">
+
+    </div>
+</div>
+<div>
+    @DanhSachXe(Model)
+</div>
+@helper DanhSachXe(List<LichTrinhLoaiXeModel> items)
+{
+    <table id="BangDanhSach">
+        <thead>
+            <tr>
+                <td>STT</td>
+                <td>Tên hành trình</td>
+                <td>Tên loại xe</td>
+               
+                <td>Giá vé</td>
+               <td></td>
+               
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < items.Count(); i++)
+            {
+               
+                var _class = "";
+                if (i % 2 == 0)
+                {
+                    _class = "RowColor";
+                }
+                <tr class="@_class">
+                    <td>
+                        @(i + 1)
+                    </td>
+                    <td style="font-weight: 900;font-size: 14px;">
+                        @items[i].tenhanhtrinh
+                    </td>
+                    <td>
+                        @items[i].tenloaixe
+                    </td>
+                    <td>
+                        <input name="txtgiave" id="TextGiaVe_@items[i].Id" value="@items[i].GiaVe" />
+                    </td>
+                    <td>
+                        <div id="actionedit_@items[i].Id" style="width:100%;text-align:center;margin:3px;">
+                            
+                            <a href="javascript:LuuThongTin(@items[i].HanhTrinhId,@items[i].LoaiXeId,@items[i].Id)" class="k-button"><img src="~/Content/chonve/nhaxe/edit_action.png" /></a>&nbsp; &nbsp;
+                                
+                        </div>
+                    </td>
+                  
+                </tr>
+            }
+
+        </tbody>
+    </table>
+
+}
+<div id="divsodo"></div>
+<script>
+
+    function OpenGiaVeSoDo(HanhTrinhId,LoaiXeId,Id) {
+
+        var windownhatky = $("#divsodo");
+        windownhatky.html("");
+
+        windownhatky.kendoWindow({
+            modal: true,
+            width: "700px",
+            height: "350px",
+            title: "Sơ đồ giá vé",
+            content: "@(Url.Action("_CauHinhGiaVeSoDo", "Limousine"))" + "?HanhTrinhId=" + HanhTrinhId + "&LoaiXeId=" + LoaiXeId,
+            actions: ["Close"]
+    });
+
+    windownhatky.data('kendoWindow').center().open();
+    }
+    function LuuThongTin(HanhTrinhId,LoaiXeId,Id) {
+       
+        var GiaVe = $('#TextGiaVe_' + Id + '').val();
+        var _data = { "HanhTrinhId": HanhTrinhId, "LoaiXeId": LoaiXeId, "GiaVe": GiaVe };
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: _data,
+            dataType: 'json',
+            url: "@(Url.Action("CauHinhGiaVeChung", "Limousine"))",
+            success: function (data) {
+                $('#TextGiaVe_' + Id).html(data);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $("#tabSoDoXeChuyenVe").html("Có lỗi trong quá trình tải sơ đồ xe");
+            }
+        });
+    }
+
+   
+</script>
+<div id="divNhatKy"></div>
+<style>
+    h3 {
+        text-align: center;
+    }
+
+    .RowColor {
+        background-color: #f5f5f5;
+    }
+
+    #BangDanhSach {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        #BangDanhSach thead {
+            font-weight: 700;
+            text-align: center;
+        }
+
+        #BangDanhSach, #BangDanhSach tr, #BangDanhSach tr td {
+            border: 1px solid #cccccc;
+            text-align: center;
+        }
+
+            #BangDanhSach tr {
+                height: 45px;
+            }
+
+    .khonghienthi {
+        display: none;
+    }
+</style>

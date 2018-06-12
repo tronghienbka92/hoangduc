@@ -1,0 +1,74 @@
+﻿@model KhachHangModel
+@using Nop.Web.Models.NhaXes
+@Html.ValidationSummary(false)
+
+<table class="adminContent">
+    <tr>
+        <td class="adminTitle">
+            Họ tên:
+        </td>
+        <td class="adminData">
+            @Html.TextBoxFor(model => model.Ten, new { @id = "txtHoTen" })
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+           Điện thoại:
+        </td>
+        <td class="adminData">
+            @Html.TextBoxFor(model => model.DienThoai, new { @id = "txtDienThoai" })
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle" style="vertical-align:top">
+            Địa chỉ liên hệ:
+        </td>
+        <td class="adminData">
+            @Html.TextAreaFor(model => model.DiaChi, new { @id = "txtDiaChiLienHe",style="width:100%" })
+        </td>
+    </tr>
+    <tr>
+        <td class="adminTitle">
+           
+        </td>
+        <td class="adminData">
+            <button id="btnupdatecustomernhaxe" class="k-button">Cập nhật</button>
+        </td>
+    </tr>    
+</table>
+<script>
+    function additionalData() {
+        return {
+            "Id": '@Model.Id',
+            "Ten": $('#txtHoTen').val(),
+            "DienThoai": $('#txtDienThoai').val(),
+            "DiaChi": $('#txtDiaChiLienHe').val()
+        };
+    }
+    $(document).ready(function () {        
+        $("#btnupdatecustomernhaxe").click(function () {
+            if ($('#txtHoTen').val() == "")            {
+                $('#txtHoTen').focus();
+                return alert("Bạn chưa nhập họ tên khách hàng");
+            }
+            if ($('#txtDienThoai').val() == "") {
+                $('#txtDienThoai').focus();
+                return alert("Bạn chưa nhập điện thoại khách hàng");
+            }
+            var paradata = additionalData();
+            $.ajax({
+                cache: false,
+                type: "POST",
+                data: paradata,
+                dataType: 'json',
+                url: "@(Url.Action("KhachHangChinhSua", "Limousine"))",
+                success: function (data) {
+                    CloseSuaKhachHang();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    return alert('Error while process ThanhToanGiuCho');                
+                }
+            });
+        })
+    });
+</script>

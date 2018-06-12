@@ -1,0 +1,463 @@
+﻿@model DatVeModel
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "datmuave-form" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="adminContent">
+        <tr>
+            <td class="adminTitle" style="width:120px !important;">
+                Hành trình:
+            </td>
+            <td class="adminData">
+                <strong>@Model.TenHanhTrinh</strong>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="adminTitle">
+                Ngày đi:
+            </td>
+            <td class="adminData">
+                @Model.NgayDi.ToString("dd/MM/yyyy")
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Giờ đi:
+            </td>
+            <td class="adminData">
+                @Model.GioDi.ToString("HH:mm")
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+               
+            </td>
+            <td class="adminData">
+               
+                @Html.CheckBoxFor(model => model.isNoiBai) &nbsp;Is Thái Bình?
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">Giá vé:</td>
+            <td class="adminData">
+                <table style="width:100%;margin-left:-2px">
+                    @if (Model.isAdmin)
+                    {
+                        <tr>
+                            <td style="vertical-align:top;text-align:left" colspan="2">Tùy chỉnh giá vé:
+                                <input type="text" id="txtDatVeGiaVeMoi" value="@Model.GiaTien" />
+                            </td>
+                        </tr>                        
+                    }
+                    
+                    <tr>
+                        <td style="width:80px;vertical-align:middle;">
+                            <strong style="color:maroon;font-size:12px" id="lbDatVeGiaVe">@Model.GiaTien.ToString("###,###,##0") đ</strong>
+                            <input type="hidden" id="hidDatVeGiaVe" value="@Model.GiaTien" />                                                     
+                            
+                        </td>
+                        <td style="vertical-align:top;text-align:left">
+                            <ul id="mnChonBangGiaVe" style="width:150px">
+                                <li>
+                                    Chọn giá vé khác
+                                    <ul>
+                                        @foreach (var item in Model.BangGiaVes)
+                                        {
+                                            <li data-giave="@item.GiaVe" data-giave-text="@item.GiaVe.ToString("###,###,##0") đ">@item.ThongTin - @item.GiaVe.ToString("###,###,##0") đ</li>
+                                        }
+                                    </ul>
+                                </li>
+                            </ul>
+                            <script>
+                                $(document).ready(function () {
+                                    function ChonGiaVe(e)
+                                    {
+                                        var _giaveitem= $(e.item);
+                                        var _giave=parseInt(_giaveitem.attr("data-giave"));
+                                        if(_giave>=0)
+                                        {
+                                            $('#lbDatVeGiaVe').html(_giaveitem.attr("data-giave-text"));
+                                            $('#hidDatVeGiaVe').val(_giaveitem.attr("data-giave"));
+                                            if($('#txtDatVeGiaVeMoi').length)
+                                                $('#txtDatVeGiaVeMoi').val(_giaveitem.attr("data-giave"));
+                                        }                                        
+                                    }
+                                    $("#mnChonBangGiaVe").kendoMenu({
+                                        select: ChonGiaVe,
+                                    });
+
+                                });
+                            </script>
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+        <tr id="trThongTinDatHopDong" style="display:none;color:red">
+            <td colspan="2">
+                Chú ý: Khách hàng này đã đặt các chuyến: <span id="spThongTinDatHopDong" style="font-weight:bold"></span>
+            </td>
+        </tr>
+        <tr id="trSearchKhachHang">
+            <td class="adminTitle" style="vertical-align:bottom">
+                Điện thoại:
+            </td>
+            <td class="adminData">
+                @if (Model.Id > 0)
+                {
+                    <text>
+                        <p>
+                            <a href="javascript:ThayKHmoi(false);" class="k-link" style="color:#117ece">Chỉ thay tên khách</a>&nbsp;|&nbsp;
+                            <a href="javascript:ThayKHmoi(true);" class="k-link" style="color:#117ece">Thay khách mới</a>
+                        </p>
+                    </text>
+                }
+                <input id="cbbSearchKhachHang" style="width:280px" value="@Model.DienThoai" />
+
+                @Html.HiddenFor(m => m.KhachHangId)
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Tên khách hàng:
+            </td>
+            <td class="adminData">
+                @Html.EditorFor(model => model.TenKhachHang)
+
+
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">Đón tại:</td>
+            <td class="adminData">
+                <table style="width:100%;margin-left:-2px">
+                    <tr>
+                        <td>
+                            @Html.TextAreaFor(model => model.TenDiemDon, new { style = "width:98%" })
+                            @Html.HiddenFor(m => m.DiemDonId)
+                        </td>
+                        <td style="width:150px;vertical-align:top;">
+                            <ul id="mnChonDiemDon" style="width:75px">
+                                <li>
+                                    Chọn
+                                    <ul>
+                                        @foreach (var item in Model.DiemDons)
+                                        {
+                                            <li data-id="@item.Value" data-text="@item.Text">@item.Text</li>
+                                        }
+                                    </ul>
+                                </li>
+                            </ul>
+                            <script>
+                                $(document).ready(function () {
+                                    function ChonDiemDon(e)
+                                    {
+                                        $('#@Html.FieldIdFor(m=>m.TenDiemDon)').val($(e.item).attr("data-text"));
+                                        $('#@Html.FieldIdFor(m=>m.DiemDonId)').val($(e.item).attr("data-id"));
+                                    }
+                                    $("#mnChonDiemDon").kendoMenu({
+                                        select: ChonDiemDon,
+                                    });
+
+                                });
+                            </script>
+                        </td>
+                    </tr>
+                </table>
+
+
+            </td>
+        </tr>
+        <tr id="trDonTaxi">
+            <td class="adminTitle" style="vertical-align:top">
+                Trả tại:
+            </td>
+            <td class="adminData">
+                <table style="width:100%;margin-left:-2px">
+                    <tr>
+                        <td>
+                            @Html.TextAreaFor(model => model.TenDiemTra, new { style = "width:98%" })
+                        </td>
+                        <td style="width:150px;vertical-align:top;">
+                            <ul id="mnChonDiemTra" style="width:75px">
+                                <li>
+                                    Chọn
+                                    <ul>
+                                        @foreach (var item in Model.DiemDons)
+                                        {
+                                            <li>@item.Text</li>
+                                        }
+                                    </ul>
+                                </li>
+                            </ul>
+                            <script>
+                                $(document).ready(function () {
+                                    function ChonDiemTra(e)
+                                    {
+                                        var _ten= $(e.item).children(".k-link").text();
+                                        $('#@Html.FieldIdFor(m => m.TenDiemTra)').val(_ten);
+                                    }
+                                    $("#mnChonDiemTra").kendoMenu({
+                                        select: ChonDiemTra,
+                                    });
+
+                                });
+                            </script>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="adminTitle"></td>
+            <td class="adminData">
+                @Html.CheckBoxFor(model => model.isThanhToan) &nbsp; Đã thanh toán  ?
+            </td>
+        </tr>
+        <tr>
+            <td class="adminTitle">
+                Ghi chú:
+            </td>
+            <td class="adminData">
+                @Html.TextAreaFor(model => model.GhiChu, new { style = "width:90%" })
+            </td>
+        </tr>
+
+        <tr>
+            <td></td>
+            <td class="adminData">
+                <input type="button" class="k-button" id="btnThanhToanGiuCho" value="Đồng ý" /> &nbsp;&nbsp;
+                @if (Model.Id > 0 && Model.trangthai != Nop.Core.Domain.NhaXes.ENTrangThaiDatVe.DA_DI)
+                {
+                    <input type="button" class="k-button" id="btnHuy" value="Hủy đặt vé" />
+                    <script>
+                        $(document).ready(function () {
+                            $('#btnHuy').click(function () {
+                                if (!confirm("Bạn có chắc chắn muốn hủy đặt vé này không ?"))
+                                    return;
+                                $('#btnHuy').attr('disabled', true);
+                                $.ajax({
+                                    cache: false,
+                                    type: "POST",
+                                    data: {DatVeId: @Model.Id},
+                                    dataType: 'json',
+                                    url: "@(Url.Action("HuyDatVe", "Limousine"))",
+                                    success: function (data) {
+                                        if(data=="OK")
+                                            CloseWindowDatMuaVe(true);
+                                        else
+                                            alert("Giao dịch đặt vé này không thể hủy, vé đã ở trạng thái đã đi");
+                                    },
+                                    error: function (xhr, ajaxOptions, thrownError) {
+                                        $('#btnHuy').attr('disabled', false);
+                                    }
+
+                                });
+                            });
+                        });
+                    </script>
+                }
+
+            </td>
+        </tr>
+    </table>
+
+    <script type="text/javascript">
+    function ShowThongTinDatVe(strmsg)
+    {
+        if(strmsg=="" || strmsg==null)
+            $("#trThongTinDatHopDong").hide();
+        else{
+            $("#trThongTinDatHopDong").show();
+            $("#spThongTinDatHopDong").html(strmsg);
+        }
+    }
+    function ThayKHmoi(isThayKHMoi)
+    {
+        if(isThayKHMoi)
+        {
+            $('#@Html.FieldIdFor(model => model.KhachHangId)').val(0);
+            $('#@Html.FieldIdFor(model => model.TenKhachHang)').val("");
+            $('#cbbSearchKhachHang').data("kendoComboBox").select(-1);
+            $('#cbbSearchKhachHang').data("kendoComboBox").input.focus();
+        }
+        else
+        {
+            $('#@Html.FieldIdFor(model => model.KhachHangId)').val(-1);
+            $('#@Html.FieldIdFor(model => model.TenKhachHang)').val("");
+            $('#@Html.FieldIdFor(model => model.TenKhachHang)').focus();
+            $("#trSearchKhachHang").hide();
+        }
+    }
+    function ShowHideDiaChiNha(isFocus) {
+        var isChecked = $('#@Html.FieldIdFor(model => model.isDonTaxi)').is(':checked');
+
+        if (isChecked) {
+            $("#trDonTaxi").show();
+            if(isFocus)
+                $('#@Html.FieldIdFor(model => model.DiaChiNha)').focus();
+        }
+        else {
+            $("#trDonTaxi").hide();
+            if(isFocus)
+                $('#@Html.FieldIdFor(model => model.DiemDonId)').focus();
+        }
+    }
+    $(document).ready(function () {
+
+        //hien thi thong tin
+        //ShowHideDiaChiNha(false);
+        setTimeout(function () {
+            if(@Model.KhachHangId==-1)
+            {
+                $("#trSearchKhachHang").hide();
+                $('#@Html.FieldIdFor(model => model.TenKhachHang)').focus();
+            }
+            else
+            {
+                $('#cbbSearchKhachHang').data("kendoComboBox").input.focus();
+            }
+
+        }, 500);
+        $("#@Html.FieldIdFor(model => model.TenDiemDon)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $('#@Html.FieldIdFor(model => model.TenDiemTra)').focus();
+                return false;
+            }
+        });
+        $("#@Html.FieldIdFor(model => model.TenDiemTra)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $('#@Html.FieldIdFor(model => model.isThanhToan)').focus();
+                return false;
+            }
+        });
+
+        $("#@Html.FieldIdFor(model => model.isThanhToan)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $('#@Html.FieldIdFor(model => model.GhiChu)').focus();
+                return false;
+            }
+        });
+        $("#@Html.FieldIdFor(model => model.GhiChu)").keydown(function (event) {
+            if (event.keyCode == 13) {
+                $('#btnThanhToanGiuCho').click();
+                return false;
+            }
+        });
+        $('#cbbSearchKhachHang').kendoComboBox({
+            placeholder: "Số điện thoại",
+            dataTextField: "DienThoai",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: false,
+            minLength: 6,
+            dataSource: {
+                type: "json",
+                serverFiltering: true,
+                transport: {
+                    read: {
+                        url: "@Html.Raw(Url.Action("GetKhachHangInNhaXe", "Limousine"))",
+                        data: dataSearchKhachHang
+                    }
+                }
+            },
+            change: onChange
+        });
+        function onChange() {
+            var DataItem = this.dataItem();
+            $('#@Html.FieldIdFor(model => model.KhachHangId)').val(DataItem.Id);
+            $('#@Html.FieldIdFor(model => model.TenKhachHang)').val(DataItem.Ten);
+            $('#@Html.FieldIdFor(model => model.TenDiemDon)').val(DataItem.TenDiemDon);
+            $('#@Html.FieldIdFor(model => model.TenDiemTra)').val(DataItem.TenDiemTra);
+            ShowThongTinDatVe(DataItem.ChuyenDiTrongNgay);
+            $('#@Html.FieldIdFor(model => model.TenDiemDon)').focus();
+
+        }
+
+        function dataSearchKhachHang() {
+            var thongtin = $('#cbbSearchKhachHang').data("kendoComboBox").text();
+            var ngaydi="@Model.NgayDi.ToString("yyyy-MM-dd")";
+            return {
+                ThongTin: thongtin,
+                isAdv:true,
+                NgayDi:ngaydi,
+                HanhTrinhId: '@Model.HanhTrinhId',
+
+            };
+        }
+        $('#btnThanhToanGiuCho').click(function () {
+            //kiem tra cac thong tin
+            var khachhangcbb = $('#cbbSearchKhachHang').data("kendoComboBox");
+            var khachhangid = $('#@Html.FieldIdFor(model => model.KhachHangId)').val();
+            if (khachhangid == 0)
+            {
+                var _dienthoai = khachhangcbb.value();
+                if (_dienthoai == "") {
+                    alert('Bạn chưa nhập số điện thoại khách hàng');
+                    khachhangcbb.input.focus();
+                    return;
+                }
+                if ($('#@Html.FieldIdFor(model => model.TenKhachHang)').val() == "") {
+                    alert('Bạn chưa nhập tên khách hàng');
+                    $('#@Html.FieldIdFor(model => model.TenKhachHang)').focus();
+                    return;
+                }
+            }
+            $('#btnThanhToanGiuCho').attr('disabled', true);
+            var paradata = additionalData();
+            $.ajax({
+                cache: false,
+                type: "POST",
+                data: paradata,
+                dataType: 'json',
+                url: "@(Url.Action("_DatVe", "Limousine"))",
+                success: function (data) {
+                    CloseWindowDatMuaVe(true);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    return alert('Error while process ThanhToanGiuCho');
+                    $('#btnThanhToanGiuCho').attr('disabled', false);
+                }
+
+            });
+        });
+        function additionalData() {
+            var khachhangcbb = $('#cbbSearchKhachHang').data("kendoComboBox");
+            var khachhangid = $('#@Html.FieldIdFor(model => model.KhachHangId)').val();
+            var _dienthoai = khachhangcbb.text();
+            var _giave=$('#hidDatVeGiaVe').val();
+            if($('#txtDatVeGiaVeMoi').length)
+            {
+                _giave=$('#txtDatVeGiaVeMoi').val();
+            }
+            return {
+                "Id": '@Model.Id',
+                "KhachHangId": khachhangid,
+                "DienThoai": _dienthoai,
+                "NgayDi": $('#@Html.FieldIdFor(model => model.NgayDi)').val(),
+                "TenKhachHang": $('#@Html.FieldIdFor(model => model.TenKhachHang)').val(),
+                "DiaChiNha": $('#@Html.FieldIdFor(model => model.TenDiemDon)').val(),
+                "isDonTaxi": false,
+                "GhiChu": $('#@Html.FieldIdFor(model => model.GhiChu)').val(),
+                "DiemDonId": $('#@Html.FieldIdFor(model => model.DiemDonId)').val(),
+                "LichTrinhId": $('#@Html.FieldIdFor(model => model.LichTrinhId)').val(),
+                "HanhTrinhId": '@Model.HanhTrinhId',
+                "TrangThaiId": '@Model.TrangThaiId',
+                "ChuyenDiId": '@Model.ChuyenDiId',
+                "SoDoGheId": '@Model.SoDoGheId',
+                "isThanhToan": $('#@Html.FieldIdFor(model => model.isThanhToan)').is(':checked'),
+                "isNoiBai": $('#@Html.FieldIdFor(model => model.isNoiBai)').is(':checked'),
+                "TenDiemDon": $('#@Html.FieldIdFor(model => model.TenDiemDon)').val(),
+                "TenDiemTra": $('#@Html.FieldIdFor(model => model.TenDiemTra)').val(),
+                "GiaTien": _giave,
+            };
+        }
+
+    });
+
+
+    </script>
+}

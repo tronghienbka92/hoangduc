@@ -1,0 +1,255 @@
+﻿@model BangDieuChuyenModel
+@using Nop.Web.Models.NhaXes
+@using Nop.Core.Domain.Chonves
+@using Nop.Core.Domain.NhaXes;
+<div style="min-width:4000px;text-align:left">
+    <table border="1" style="border-collapse:collapse;width:auto">
+        @for (int i = -1; i < Model.arrBangDieuChuyen.GetLength(0); i++)
+        {
+            var _class = "";
+            if (i > 0 && i % 2 == 1)
+            {
+                _class = "bghanhtrinh";
+            }
+            <tr class="@_class">
+                @for (int j = -1; j < Model.arrBangDieuChuyen.GetLength(1); j++)
+                {
+                    <td style="width:120px;padding:3px;text-align:center;vertical-align:top">
+                        @if (i == -1)
+                        {
+                            if (j >= 0)
+                            {
+                                <text>
+                                    <div style="height:30px">
+                                        <strong>@Model.arrBangDieuChuyen[0, j].TenLichTrinh</strong>
+                                    </div>
+                                </text>
+                            }
+                        }
+                        else
+                        {
+                            if (j == -1)
+                            {
+                                <text>
+                                    <strong>@Model.arrBangDieuChuyen[i, 0].TenHanhTrinh</strong>
+
+                                </text>
+                            }
+                            else
+                            {
+                                <text>
+                                    @BangDieuChuyenCell(Model.arrBangDieuChuyen[i, j])
+                                </text>
+                            }
+                        }
+
+                    </td>
+                }
+            </tr>
+        }
+    </table>
+</div>
+<div style="width:100%;margin-top:20px;font-size:13px;">
+    <p><strong>Những xe chưa điều: </strong><span style="color:red">@Model.ThongTinXeChuaDieu</span> </p>
+    <p><strong>Những xe đã điều: </strong><span>@Model.ThongTinXeDaDieu</span></p>
+</div>
+<div style="height:120px">&nbsp;</div>
+<div id="windowthietdatchuyendi" style="display:none">
+    <table style="width:100%">
+        <tr>
+            <td>
+                <input id="txtthoigiandi" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input id="cbbBienSoInput" style="width:100%" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input id="cbbLaiXeInput" style="width:100%" />
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align:center">
+                @if (Model.IsQuyenTaoChuyen)
+                {
+                    <text>
+                        <input type="button" value="Đồng ý" class="k-button" onclick="LuuThongTin();" />&nbsp; &nbsp;
+                        <input type="button" value="Hủy thiết đặt" class="k-button" onclick="HuyChuyenDi();" />
+                    </text>
+                }
+                <input type="hidden" id="hidChuyenDiId" />
+            </td>
+        </tr>
+    </table>
+</div>
+@helper BangDieuChuyenCell(BangDieuChuyenModel.BangDieuChuyenItem item)
+{
+    <div style="width:100%;text-align:center;vertical-align:top;min-height:60px;">
+        @if (Model.IsQuyenTaoChuyen)
+        {
+            <text>
+                <div style="position:relative;left:-2px;top:-2px;width:20px;height:20px;text-align:left"><a href="javascript:ThemMoiChuyenDi(@item.LichTrinhId , @item.HanhTrinhId);" title="Thêm chuyến đi" style="color:#47d70a;"><img src="~/Content/chonve/nhaxe/circle_add_new.png" style="width:20px;height:20px;" /> </a></div>
+            </text>
+        }
+        
+        @foreach (var cd in item.chuyendis)
+        {
+            if (cd.SoKhach > 0 || !Model.IsQuyenTaoChuyen)
+            {
+                <div id="spChuyenDi_@cd.Id" style="width:100%;display:block;margin-bottom:7px;"><a href="javascript:ThietDat(@cd.Id,@cd.XeVanChuyenId.GetValueOrDefault(0),@cd.LaiXeId.GetValueOrDefault(0),'@cd.NgayDiThuc.ToString("HH:mm")')" class="lnkchuyendicss">@cd.BienSoXe3So / @cd.TenLaiXeRutGon / <span style='color:red;font-weight:bold;font-size:14px'>@cd.SoKhach</span></a></div>
+            }
+            else
+            {
+                <div id="spChuyenDi_@cd.Id" style="width:100%;display:block;margin-bottom:7px;"><a href="javascript:ThietDat(@cd.Id,@cd.XeVanChuyenId.GetValueOrDefault(0),@cd.LaiXeId.GetValueOrDefault(0),'@cd.NgayDiThuc.ToString("HH:mm")')" class="lnkchuyendicss">@(string.Format("{0} / {1} / {2}", cd.BienSoXe3So, cd.TenLaiXeRutGon, cd.SoKhach))</a>&nbsp;(<a href="javascript:HuyChuyenDiFast(@cd.Id);" title="Hủy chuyến đi" style="color:red;">x</a>)</div>
+            }
+        }
+
+    </div>
+}
+
+<script>
+
+    $(document).ready(function () {
+        ThongTinBienSo();
+        ThongTinLaiPhuXe();
+        ThongTinThoiGianDi();
+    });
+
+    function ThietDat(ChuyenDiId, XeVanChuyenId, LaiXeId, thoitgiandi) {
+        var windowdieuchuyen = $("#windowthietdatchuyendi");
+        windowdieuchuyen.kendoWindow({
+            modal: true,
+            width: "300px",
+            height: "150px",
+            title: "Thiết đặt xe và lái xe cho chuyến đi",
+            actions: ["Close"],
+        });
+        windowdieuchuyen.data('kendoWindow').center().open();
+        $("#hidChuyenDiId").val(ChuyenDiId);
+        if (LaiXeId > 0)
+            $("#cbbLaiXeInput").data("kendoComboBox").value(LaiXeId);
+        else
+            $("#cbbLaiXeInput").data("kendoComboBox").select(-1);
+        if (XeVanChuyenId > 0)
+            $("#cbbBienSoInput").data("kendoComboBox").value(XeVanChuyenId);
+        else
+            $("#cbbBienSoInput").data("kendoComboBox").select(-1);
+        $("#txtthoigiandi").data("kendoTimePicker").value(thoitgiandi);
+    }
+    function CloseWindowThietDat() {
+        var windowdieuchuyen = $("#windowthietdatchuyendi");
+        windowdieuchuyen.data('kendoWindow').close();
+    }
+
+    function LuuThongTin() {
+        var _laixeid = $('#cbbLaiXeInput').data("kendoComboBox").value();
+        var _biensoxeid = $('#cbbBienSoInput').data("kendoComboBox").value();
+        if (_biensoxeid == "") {
+            alert("Bạn chưa chọn biển số xe");
+            $("#cbbLaiXeInput").data("kendoComboBox").input.focus();
+            return;
+        }
+        if (_laixeid == "") {
+            alert("Bạn chưa chọn lái xe");
+            $("#cbbBienSoInput").data("kendoComboBox").input.focus();
+            return;
+        }
+        var _thoigiandidate = $('#txtthoigiandi').data("kendoTimePicker").value();
+        var _thoigiandi = kendo.toString(_thoigiandidate, "yyyy-MM-dd HH:mm:ss");
+        var _thoigiandival = kendo.toString(_thoigiandidate, "HH:mm");
+
+        var ChuyenDiId = $("#hidChuyenDiId").val();
+        var _data = { "LaiXeId": _laixeid, "XeVanChuyenId": _biensoxeid, "ChuyenDiId": ChuyenDiId, "ThoiGianDi": _thoigiandi };
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: _data,
+            dataType: 'json',
+            url: "@(Url.Action("ThietLapChuyenDi", "Limousine"))",
+            success: function (data) {
+                if (data) {
+                    $('#spChuyenDi_' + ChuyenDiId).html("<a href=\"javascript:ThietDat(" + ChuyenDiId + "," + _biensoxeid + "," + _laixeid + ",'" + _thoigiandival + "')\" class='lnkchuyendicss'>" + data.BienSoXe3So + " / " + data.TenLaiXeRutGon + " / " + data.SoKhach + "</a>");
+                    CloseWindowThietDat();
+                }
+                else {
+                    alert("Có lỗi");
+                }
+
+            },
+        });
+    }
+
+    function HuyChuyenDi() {
+        if (!confirm("Bạn có chắc chắn hủy thiết lập chuyến đi này không ?"))
+            return;
+        var ChuyenDiId = $("#hidChuyenDiId").val();
+        var _thoigiandidate = $('#txtthoigiandi').data("kendoTimePicker").value();
+        var _thoigiandival = kendo.toString(_thoigiandidate, "HH:mm");
+        $.ajax({
+            cache: false,
+            type: "POST",
+            data: { ChuyenDiId: ChuyenDiId },
+            dataType: 'json',
+            url: "@(Url.Action("HuyThietLapChuyenDi", "Limousine"))",
+            success: function (data) {
+                if (data) {
+                    $('#spChuyenDi_' + ChuyenDiId).html("<a href=\"javascript:ThietDat(" + ChuyenDiId + ",0,0,'" + _thoigiandival + "')\" class='lnkchuyendicss'>" + data.BienSoXe3So + " / " + data.TenLaiXeRutGon + " / " + data.SoKhach + "</a>");
+                    CloseWindowThietDat();
+                }
+
+            },
+        });
+    }
+    function ThongTinThoiGianDi() {
+        $("#txtthoigiandi").kendoTimePicker({
+            format: "HH:mm"
+        });
+    }
+    function ThongTinLaiPhuXe() {
+
+        $("#cbbLaiXeInput").kendoComboBox({
+            placeholder: "Chọn lái xe",
+            dataTextField: "TenLaiXe",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: false,
+            minLength: 1,
+            dataSource: {
+                data: laiphuxedatasoures
+            },
+            change: function (e) {
+            }
+        });
+
+
+
+    }
+    function ThongTinBienSo() {
+        $("#cbbBienSoInput").kendoComboBox({
+            placeholder: "Chọn biển số",
+            dataTextField: "BienSo",
+            dataValueField: "Id",
+            filter: "contains",
+            autoBind: false,
+            minLength: 1,
+            dataSource: {
+                data: xevanchuyendatasoures
+            },
+            change: function (e) {
+            }
+        });
+    }
+</script>
+<style>
+    .lnkchuyendicss {
+        font-weight: bold;
+        color: #3b94d4;
+    }
+
+    .bghanhtrinh {
+        background-color: #f8f4d7;
+    }
+</style>
